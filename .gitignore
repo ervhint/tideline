@@ -1,0 +1,22 @@
+.env*
+!.env.example
+node_modules/
+.next/
+out/
+THESIS_DRAFT.md
+HACKATHON.md
+HACKATHON-WORKFLOW.md
+next-env.d.ts
+*.tsbuildinfo
+
+.vercel
+
+DESIGN-REFERENCE-*.md
+HACKATHON-WORKFLOW-*.md
+DESIGN-REFERENCE.md
+
+.playwright-mcp/
+
+# Parked notes for discussion with another model; not part of the repo
+docs/THESIS-TEXT-NOTES.md
+docs/UNDERSTANDING-PLAN.md

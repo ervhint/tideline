@@ -1,0 +1,81 @@
+name: contract-deploy
+
+# Testnet only, started by hand, once. Records are permanent, so it refuses an account
+# that already has code. After it passes, write contract/deployment.json from its output.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type deploy-testnet to deploy'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency: contract-deploy
+
+env:
+  CARGO_NEAR_VERSION: 0.22.0
+  NEAR_CLI_VERSION: 0.30.1
+  RPC_URL: https://rpc.testnet.fastnear.com
+
+jobs:
+  deploy:
+    if: inputs.confirm == 'deploy-testnet'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: contract
+    env:
+      ACCOUNT: ${{ secrets.NEAR_ATTEST_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the account before spending anything
+        run: |
+          case "$ACCOUNT" in *.testnet) ;; *) echo "not a testnet account"; exit 1 ;; esac
+          view() { curl -sS -X POST -H 'content-type: application/json' "$RPC_URL" -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"query\",\"params\":$1}"; }
+          code=$(view "{\"request_type\":\"view_account\",\"finality\":\"final\",\"account_id\":\"$ACCOUNT\"}" | jq -r .result.code_hash)
+          [ "$code" = "11111111111111111111111111111111" ] || { echo "account already has code: $code"; exit 1; }
+      # Toolchain and wasm target come from contract/rust-toolchain.toml.
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contract
+      - name: Install cargo-near and near CLI
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf "https://github.com/near/cargo-near/releases/download/cargo-near-v${CARGO_NEAR_VERSION}/cargo-near-installer.sh" | sh
+          curl --proto '=https' --tlsv1.2 -LsSf "https://github.com/near/near-cli-rs/releases/download/v${NEAR_CLI_VERSION}/near-cli-rs-installer.sh" | sh
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - run: cargo near build non-reproducible-wasm --locked
+      - run: cargo test
+      - run: sha256sum target/near/*.wasm && wc -c target/near/*.wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tideline-attest-deployed
+          path: |
+            contract/target/near/*.wasm
+            contract/target/near/*.json
+            contract/Cargo.lock
+      - name: Deploy and init
+        env:
+          SIGNER_PRIVATE_KEY: ${{ secrets.NEAR_ATTEST_PRIVATE_KEY }}
+        run: |
+          near contract deploy "$ACCOUNT" \
+            use-file target/near/tideline_attest.wasm \
+            with-init-call new \
+            json-args "{\"owner\":\"$ACCOUNT\"}" \
+            prepaid-gas '100 TGas' \
+            attached-deposit '0 NEAR' \
+            network-config testnet \
+            sign-with-plaintext-private-key "$SIGNER_PRIVATE_KEY" \
+            send < /dev/null
+      - name: Read the result back
+        run: |
+          curl -sS -X POST -H 'content-type: application/json' "$RPC_URL" \
+            -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"query\",\"params\":{\"request_type\":\"view_account\",\"finality\":\"final\",\"account_id\":\"$ACCOUNT\"}}" | jq .result
+          owner=$(curl -sS -X POST -H 'content-type: application/json' "$RPC_URL" \
+            -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"$ACCOUNT\",\"method_name\":\"owner\",\"args_base64\":\"e30=\"}}" \
+            | jq -r '.result.result | implode')
+          echo "owner: $owner"
+          [ "$owner" = "\"$ACCOUNT\"" ]

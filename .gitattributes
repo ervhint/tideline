@@ -1,0 +1,2 @@
+# Archives are hashed and anchored on-chain, so git must never rewrite their line endings.
+data/** -text

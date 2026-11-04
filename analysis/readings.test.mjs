@@ -1,0 +1,131 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { q1, q2, q3, q4, q5, verdict, concentration, largestIntegrator, largestIntegratorBySize, runRates, spreadBps } from './readings.mjs';
+
+const B = 'Bullish', N = 'Neutral', R = 'Bearish', M = 'Not Measured';
+
+test('T-6.1 Q1 sides on the -1 line: exactly on it is Neutral', () => {
+  assert.equal(q1({ lo: -0.99, hi: 0.4 }).side, B);
+  assert.equal(q1({ lo: -1, hi: 0.4 }).side, N);
+  assert.equal(q1({ lo: -1.4, hi: 0.4 }).side, N);
+  assert.equal(q1({ lo: -3, hi: -1 }).side, N);
+  assert.equal(q1({ lo: -3, hi: -1.01 }).side, R);
+  assert.equal(q1(null).side, M);
+});
+
+const days = (n, fees, rev) => Array.from({ length: n }, () => ({ fees, revenue: rev }));
+
+test('T-6.1 Q2 sides: above 30% Bullish, below 20% on each of 14 days Bearish', () => {
+  assert.equal(q2(days(30, 100, 30.01)).side, B);
+  assert.equal(q2(days(30, 100, 30)).side, N);
+  assert.equal(q2(days(30, 100, 19.99)).side, R);
+  assert.equal(q2(days(30, 100, 20)).side, N);
+  // 14 low days at the end are not enough on their own if one of them is at 20%
+  const mixed = [...days(16, 100, 30), ...days(13, 100, 10), { fees: 100, revenue: 20 }];
+  assert.equal(q2(mixed).side, N);
+  assert.equal(q2(days(29, 100, 50)).side, M);
+  assert.equal(q2(days(30, 0, 0)).side, M);
+});
+
+test('T-6.1 Q3 sides: spread and top-3 together; Bearish if either passes its line; missing is Not Measured', () => {
+  assert.equal(q3({ spreadBps: 4.99, top3: 0.59 }).side, B);
+  assert.equal(q3({ spreadBps: 5, top3: 0.59 }).side, N);
+  assert.equal(q3({ spreadBps: 4, top3: 0.6 }).side, N);
+  assert.equal(q3({ spreadBps: 10, top3: 0.8 }).side, N);
+  assert.equal(q3({ spreadBps: 10.01, top3: 0.3 }).side, R);
+  assert.equal(q3({ spreadBps: 2, top3: 0.81 }).side, R);
+  assert.equal(q3({ spreadBps: 2, top3: null }).side, M);
+  assert.equal(q3({ spreadBps: null, top3: 0.3 }).side, M);
+});
+
+test('T-6.1 Q4 sides: under 50% Bullish, over 80% Bearish', () => {
+  assert.equal(q4(0.499).side, B);
+  assert.equal(q4(0.5).side, N);
+  assert.equal(q4(0.8).side, N);
+  assert.equal(q4(0.801).side, R);
+  assert.equal(q4(null).side, M);
+});
+
+test('T-6.1 Q5 sides: rose or fell over each of the last 3 months', () => {
+  assert.equal(q5([1, 2, 3, 4]).side, B);
+  assert.equal(q5([4, 3, 2, 1]).side, R);
+  assert.equal(q5([1, 2, 2, 4]).side, N);
+  assert.equal(q5([1, 3, 2, 4]).side, N);
+  assert.equal(q5([1, 2, 3]).side, M);
+  assert.equal(q5(null).side, M);
+});
+
+test('T-6.1 verdict: Q1 and Q5 count double, 3 or more Not Measured is Undecided', () => {
+  assert.equal(verdict([B, B, B, B, B]).score, 7);
+  assert.equal(verdict([B, B, B, B, B]).verdict, B);
+  assert.equal(verdict([R, R, R, R, R]).verdict, R);
+  assert.equal(verdict([R, R, R, R, R]).score, -7);
+  assert.equal(verdict([B, N, N, N, N]).score, 2);
+  assert.equal(verdict([B, N, N, N, N]).verdict, 'Undecided');
+  assert.equal(verdict([B, N, N, N, B]).score, 4);
+  assert.equal(verdict([B, N, N, N, B]).verdict, B);
+  assert.equal(verdict([N, B, N, N, B]).score, 3);
+  assert.equal(verdict([N, B, N, N, B]).verdict, B);
+  assert.equal(verdict([N, B, N, N, N]).score, 1);
+  assert.equal(verdict([R, N, N, N, R]).verdict, R);
+  // three Not Measured wins over the score
+  assert.equal(verdict([B, M, M, M, B]).verdict, 'Undecided');
+  assert.equal(verdict([B, M, M, N, B]).verdict, B);
+});
+
+// Hand-worked: volumes 50, 30, 20 -> shares 0.5, 0.3, 0.2 -> HHI = 2500 + 900 + 400 = 3800; top-3 = 1.0.
+// With a fourth of 100 added (total 200): shares 0.25, 0.15, 0.1, 0.5 -> HHI = 625 + 225 + 100 + 2500 = 3450; top-3 = 0.5 + 0.25 + 0.15 = 0.9.
+test('T-6.2 HHI and top-3 match the hand-worked fixture', () => {
+  const a = concentration([50, 30, 20]);
+  assert.equal(a.hhi, 3800);
+  assert.equal(a.top3, 1);
+  const b = concentration([50, 30, 20, 100]);
+  assert.ok(Math.abs(b.hhi - 3450) < 1e-9);
+  assert.ok(Math.abs(b.top3 - 0.9) < 1e-9);
+  assert.deepEqual(concentration([]), { hhi: null, top3: null });
+  assert.deepEqual(concentration([0, 0]), { hhi: null, top3: null });
+});
+
+test('T-6.2 largest integrator: fee = usd in x fee rate, blank referral never counts as an integrator, share is of all fees', () => {
+  const rows = [
+    // referral, fee_bps, usd_in
+    { day: '2026-10-01', referral: 'a', fee_bps: 100, usd_in: 1000 }, // fee 10
+    { day: '2026-10-02', referral: 'b', fee_bps: 50, usd_in: 1000 }, // fee 5
+    { day: '2026-10-02', referral: '', fee_bps: 100, usd_in: 5000 }, // fee 50, blank
+    { day: '2026-08-01', referral: 'b', fee_bps: 100, usd_in: 99999 }, // outside the window
+  ];
+  const r = largestIntegrator(rows, '2026-10-02', 30);
+  assert.equal(r.referral, 'a');
+  assert.ok(Math.abs(r.share - 10 / 65) < 1e-12);
+  assert.equal(largestIntegrator([], '2026-10-02', 30), null);
+});
+
+test('T-6.2 run rates: trailing 90-day revenue at the last day and 30, 60, 90 days earlier', () => {
+  const series = Array.from({ length: 180 }, (_, i) => ({ day: i, revenue: i < 90 ? 1 : i < 120 ? 2 : 3 }));
+  const r = runRates(series);
+  assert.equal(r.length, 4);
+  // oldest first: days 0-89 -> 90; days 30-119 -> 60*1 + 30*2 = 150; days 60-149 -> 30*1... check by sum
+  const sum = (a, b) => series.slice(a, b + 1).reduce((s, x) => s + x.revenue, 0);
+  assert.deepEqual(r, [sum(0, 89), sum(30, 119), sum(60, 149), sum(90, 179)]);
+  assert.equal(runRates(series.slice(0, 100)), null);
+});
+
+test('T-6.2 spread: median of what the solver keeps on $1,000 quotes in the last 7 days', () => {
+  const g = (sizeUsd, unexplainedBps, sampledAt) => ({ sizeUsd, unexplainedBps, sampledAt });
+  const rows = [g(1000, 2, '2026-10-30T00:00:00Z'), g(1000, 6, '2026-10-31T00:00:00Z'), g(1000, 4, '2026-11-01T00:00:00Z'), g(10000, 99, '2026-11-01T00:00:00Z'), g(1000, 99, '2026-10-01T00:00:00Z')];
+  assert.equal(spreadBps(rows, '2026-11-01T12:00:00Z'), 4);
+  assert.equal(spreadBps([], '2026-11-01T12:00:00Z'), null);
+});
+
+test('largestIntegratorBySize splits by bucket and gives null for an empty one', () => {
+  const rows = [
+    { day: '2026-10-02', referral: 'a', bucket: '0-1k', fee_bps: 100, usd_in: 1000 },
+    { day: '2026-10-02', referral: 'b', bucket: '0-1k', fee_bps: 100, usd_in: 3000 },
+    { day: '2026-10-02', referral: 'a', bucket: '1k-10k', fee_bps: 100, usd_in: 1000 },
+  ];
+  const r = largestIntegratorBySize(rows, '2026-10-02', 30, ['0-1k', '1k-10k', '100k+']);
+  assert.equal(r['0-1k'].referral, 'b');
+  assert.ok(Math.abs(r['0-1k'].share - 0.75) < 1e-12);
+  assert.equal(r['1k-10k'].referral, 'a');
+  assert.equal(r['100k+'], null);
+});

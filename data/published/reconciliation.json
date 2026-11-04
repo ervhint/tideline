@@ -1,0 +1,54 @@
+{
+ "rows": [
+  {
+   "figure": "Monthly Volume Needed at 1.6%",
+   "ours": "$12.3B",
+   "others": [
+    {
+     "name": "The draft",
+     "value": "$15.8B",
+     "date": "Undated draft, checked 30 Oct 2026"
+    }
+   ],
+   "why": "NEAR is $3.87 now, not $4.97, and every dollar threshold moves with price."
+  },
+  {
+   "figure": "Daily Threshold",
+   "ours": "$403M a day",
+   "others": [
+    {
+     "name": "TronWeekly, citing a DefiLlama Pro page",
+     "value": "About $177M a day",
+     "date": "Apr 2026"
+    }
+   ],
+   "why": "NEAR was $1.35 then, and the method is not shown. The DefiLlama Pro page itself would not open for us."
+  },
+  {
+   "figure": "Buyback Share",
+   "ours": "100% of revenue (DefiLlama); $6.68M of revenue from 23 Feb to 18 Oct 2026",
+   "others": [
+    {
+     "name": "Altcoin Buzz, citing DefiLlama and NearBlocks",
+     "url": "https://www.altcoinbuzz.io/near-intents-has-bought-back-6-68m-of-near-using-fees",
+     "value": "$6.68M bought back since February. The buyback wallet holds 2.02M NEAR on NearBlocks but 1.51M NEAR on NEAR’s dashboard",
+     "date": "19 Oct 2026"
+    }
+   ],
+   "why": "DefiLlama books all revenue as buybacks, so its buyback total is its revenue total for the same days. It shows revenue booked, not NEAR bought. The two wallet balances disagree and we have not checked the chain ourselves."
+  },
+  {
+   "figure": "Cumulative Volume",
+   "ours": "Not available",
+   "others": [
+    {
+     "name": "Crypto Briefing, citing Dune",
+     "url": "https://cryptobriefing.com/near-protocol-intents-30-billion-volume-record/",
+     "value": "About $31.4B all time, of which about $29.5B public intents and about $1.9B confidential",
+     "date": "22 Sep 2026"
+    }
+   ],
+   "why": "Our figure matches the public part. The extra $1.9B is confidential intents, which DefiLlama appears not to count (our reading, not confirmed). Our series starts on 1 Sep 2025, so any earlier volume is missing."
+  }
+ ]
+}

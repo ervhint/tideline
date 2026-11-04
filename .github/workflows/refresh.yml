@@ -1,0 +1,52 @@
+name: refresh
+
+# Pulls DefiLlama and the model inputs, rebuilds data/published/, records side changes in alarm/history.json.
+# It commits only when a number changed, and only after `npm run verify` passes. GitHub runs schedules late.
+# Telegram goes out after the push, so a failed push never sends a message. Without the two Telegram secrets it prints the message.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run everything, print what would change, commit and send nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency: refresh
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Dry run
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: node pipeline/refresh.mjs --dry-run
+      - name: Refresh
+        if: github.event_name == 'schedule' || !inputs.dry_run
+        run: node pipeline/refresh.mjs --message-file "$RUNNER_TEMP/alarm.txt"
+      - name: Verify
+        if: github.event_name == 'schedule' || !inputs.dry_run
+        run: npm run verify
+      - name: Commit
+        if: github.event_name == 'schedule' || !inputs.dry_run
+        run: |
+          git config user.name "tideline-refresh"
+          git config user.email "tideline-refresh@users.noreply.github.com"
+          git add data alarm
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "data: refresh $(date -u +%FT%TZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 10; done
+          exit 1
+      - name: Telegram
+        if: github.event_name == 'schedule' || !inputs.dry_run
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node pipeline/telegram.mjs "$RUNNER_TEMP/alarm.txt"

@@ -1,0 +1,21 @@
+{
+  "asOf": "2026-11-01",
+  "rule": "A label exists only with an evidence link (AC-2.4). Referral names not listed here are unlabelled and their volume stays under the raw referral name. Confidence: 'sourced' = the project's own page or docs; 'secondary' = press or an aggregator, check before relying on it.",
+  "labels": [
+    { "referral": "swapkit", "name": "SwapKit", "kind": "aggregator SDK", "confidence": "sourced", "evidence": "https://swapkit.dev/blog/swapkit-near-intents-integration/", "note": "Wallets such as Ledger reach Intents through SwapKit, so one referral hides many end apps (https://swapkit.dev/?p=2832)." },
+    { "referral": "lifi", "name": "LI.FI", "kind": "aggregator", "confidence": "sourced", "evidence": "https://li.fi/knowledge-hub/li-fi-integrates-near-intents-for-one-step-cross-chain-swaps" },
+    { "referral": "zashi", "name": "Zashi (Zcash wallet)", "kind": "wallet", "confidence": "secondary", "evidence": "https://zechub.substack.com/p/zcash-shielded-news-vol17", "note": "Swaps launched Oct 2025 per press; rebranded to Zodl in Feb 2026." },
+    { "referral": "zodl", "name": "Zodl (Zcash wallet, formerly Zashi)", "kind": "wallet", "confidence": "secondary", "evidence": "https://zechub.substack.com/p/zcash-shielded-news-vol17", "note": "Zashi and Zodl are probably the same wallet before and after the rebrand; not confirmed from the referral data." },
+    { "referral": "stableflow", "name": "StableFlow (DapDap)", "kind": "stablecoin bridge app", "confidence": "secondary", "evidence": "https://www.coinspeaker.com/dapdap-launches-stableflow-cross-chain-stablecoin-bridge-with-0-01-fees/" },
+    { "referral": "cow", "name": "CoW Swap", "kind": "DEX", "confidence": "secondary", "evidence": "https://thedefiant.io/news/defi/cowswap-solana-launch-near-intents-6ete" },
+    { "referral": "infinex.near", "name": "Infinex", "kind": "app", "confidence": "secondary", "evidence": "https://coinmarketcap.com/cmc-ai/infinex/latest-updates/", "note": "Aggregator page; Infinex's own announcement not found." }
+  ],
+  "unlabelled_top": [
+    { "referral": "near-intents.intents-referral.near", "why": "No source found saying who runs this account." },
+    { "referral": "new.intents-referral.near", "why": "Same." },
+    { "referral": "rango", "why": "No source found for a Rango integration." },
+    { "referral": "(blank)", "why": "No referral set." },
+    { "referral": "meru", "why": "No source found." },
+    { "referral": "solswap.intents-referral.near", "why": "No source found." }
+  ]
+}

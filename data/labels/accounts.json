@@ -1,0 +1,46 @@
+{
+ "asOf": "2026-11-03",
+ "rule": "Same rule as frontends.json: a label exists only with an evidence link (AC-2.4). Confidence: 'sourced' = the chain itself or the owner's own published method; 'secondary' = inferred by us, check before relying on it.",
+ "labels": [
+  {
+   "account": "buybacks.multisignature.near",
+   "name": "NEAR buyback wallet",
+   "kind": "revenue wallet",
+   "confidence": "sourced",
+   "evidence": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near-intents/index.ts",
+   "note": "One of the three wallets in NEAR's own revenue query (Dune 6740088, https://dune.com/queries/6740088) as copied into DefiLlama's adapter. The Explorer names it as an app fee recipient on executed 1Click swaps; on chain those fees can land in another account first (see 5880ad2b...)."
+  },
+  {
+   "account": "1csfundsadmin.sputnik-dao.near",
+   "name": "NEAR 1Click fund",
+   "kind": "revenue wallet",
+   "confidence": "sourced",
+   "evidence": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near-intents/index.ts",
+   "note": "In NEAR's revenue query; DefiLlama books it as 'Other Revenue' (1Click and partner revenue shares)."
+  },
+  {
+   "account": "fefundsadmin.sputnik-dao.near",
+   "name": "NEAR front-end fund",
+   "kind": "revenue wallet",
+   "confidence": "sourced",
+   "evidence": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near-intents/index.ts",
+   "note": "In NEAR's revenue query; DefiLlama books it as 'Front-end Affiliate Revenue' (near.com, app.near-intents.org)."
+  },
+  {
+   "account": "7066024d3f20f94de601c003163367873cca78507eeca4df66d9be645f197f05",
+   "name": "intents.near protocol fee collector",
+   "kind": "protocol fee collector",
+   "confidence": "sourced",
+   "evidence": "https://github.com/near/intents/blob/main/contracts/defuse/core/src/intents/token_diff.rs",
+   "note": "Returned by intents.near fee_collector() on 2026-11-03. The contract charges fee() = 1 pip (0.01 bps) of token_in on every token_diff and deposits it here; fee() read 1 at blocks 182,560,000 (24 Jan 2026), 192,000,000, 205,000,000 and 215,000,000 (9 Sep 2026)."
+  },
+  {
+   "account": "5880ad2b362620fadf759cbceb1cd5737ce8c6ed7fb8e9942881e6731f9247dd",
+   "name": "1Click default fee recipient (owner not shown)",
+   "kind": "fee recipient, owner unknown",
+   "confidence": "secondary",
+   "evidence": "https://github.com/ervhint/tideline/blob/main/data/published/fee_account.json",
+   "note": "Named as the 20 bps app fee recipient in 1Click dry quotes seen in Oct 2026 (Tideline stores no quotes). On chain it also receives fee transfers on executed swaps: in transaction 8hc3KmYPnAqn4runY1q6EeWM66qkKquVWSDceJZhwt6a (15 Oct 2026) a 1 bps fee (10,431 of 104,310,000 units) went to it, while the Explorer lists that same fee as paid to buybacks.multisignature.near. So the Explorer's fee recipient names are labels, not the account that receives on chain. It may collect fees for NEAR's buyback wallet, but it is not one of the wallets in NEAR's own revenue query and the chain does not show who controls it, so NEAR ownership is not established (AC-3.3)."
+  }
+ ]
+}

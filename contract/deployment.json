@@ -1,0 +1,11 @@
+{
+  "network": "testnet",
+  "contractId": "tideline-thesis.testnet",
+  "owner": "tideline-thesis.testnet",
+  "rpcUrl": "https://rpc.testnet.fastnear.com",
+  "deployTransaction": "HrUvseYRMnmtvLiJneAQGHq72EZiTEtNP2UbJzAw6ZVt",
+  "deployedAt": "2026-11-04T04:07:06Z",
+  "wasmSha256": "bcb2dc689f666573330367c0986e818e804eb9a22c04bfb16732ee622a303d94",
+  "codeHashOnChain": "DhbqJJQp9rGoWUDNWyPSJvB3XohkABC7Q8x83pNTtiZR",
+  "build": "cargo near build non-reproducible-wasm --locked, cargo-near 0.22.0, run 41770683929"
+}

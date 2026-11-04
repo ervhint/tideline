@@ -1,0 +1,42 @@
+name: attest-days
+
+# Writes each finished quote day to the testnet contract. It only reads the repo and
+# commits nothing. GitHub runs schedules late, so several chances a day; re-runs are safe.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Print what would be sent, send nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency: attest-days
+
+env:
+  NEAR_CLI_VERSION: 0.30.1
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Dry run
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: npm run attest:send -- --dry-run
+      - name: Install near CLI
+        if: github.event_name == 'schedule' || !inputs.dry_run
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf "https://github.com/near/near-cli-rs/releases/download/v${NEAR_CLI_VERSION}/near-cli-rs-installer.sh" | sh
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Send
+        if: github.event_name == 'schedule' || !inputs.dry_run
+        env:
+          NEAR_ATTEST_PRIVATE_KEY: ${{ secrets.NEAR_ATTEST_PRIVATE_KEY }}
+        run: npm run attest:send

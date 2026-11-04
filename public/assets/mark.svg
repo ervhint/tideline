@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Tideline mark (placeholder)" clip-path="url(#clip0_0_74)">
+<path id="Vector" d="M21 0H3C1.34315 0 0 1.34315 0 3C0 4.65685 1.34315 6 3 6H21C22.6569 6 24 4.65685 24 3C24 1.34315 22.6569 0 21 0Z" fill="#0D1B30"/>
+<path id="Vector_2" d="M17.1429 14.5714H6.85714C5.43698 14.5714 4.28571 15.7227 4.28571 17.1429V21.4286C4.28571 22.8487 5.43698 24 6.85714 24H17.1429C18.563 24 19.7143 22.8487 19.7143 21.4286V17.1429C19.7143 15.7227 18.563 14.5714 17.1429 14.5714Z" fill="#0D1B30"/>
+</g>
+<defs>
+<clipPath id="clip0_0_74">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>

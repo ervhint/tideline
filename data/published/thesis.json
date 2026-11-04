@@ -1,0 +1,99 @@
+{
+ "asOf": "2026-11-03T11:54:42.440Z",
+ "prereg": null,
+ "snapshotLastDay": null,
+ "readings": [
+  {
+   "id": "Q1",
+   "name": "Pricing Power",
+   "side": "Not Measured",
+   "detail": "Still to estimate",
+   "plain": "Whether raising a fee brings in more revenue. It is Bullish only if the whole interval is above -1.",
+   "source": "intents.near chain sample",
+   "query": "analysis/elasticity.mjs → data/published/elasticity.json"
+  },
+  {
+   "id": "Q2",
+   "name": "NEAR's Share of Fees",
+   "side": "Bullish",
+   "capture": 0.34931558373431254,
+   "detail": "35% last 30 days",
+   "plain": "The part of Intents fees that DefiLlama books as revenue. Bullish above 30%; Bearish only if it was under 20% on each of the last 14 days.",
+   "source": "DefiLlama, all Intents",
+   "query": "analysis/readings.mjs q2 → data/snapshot/defillama_daily.json"
+  },
+  {
+   "id": "Q3",
+   "name": "Solver Competition",
+   "side": "Not Measured",
+   "detail": "Top 3 share not available",
+   "plain": "Two numbers: what solvers keep on $1,000 swaps, and how much of the volume the top 3 solvers fill. Bullish under 5 bps and 60%; Bearish over 10 bps or 80%.",
+   "source": "intents.near chain sample; not collected yet",
+   "query": "analysis/readings.mjs q3 → data/snapshot/solvers"
+  },
+  {
+   "id": "Q4",
+   "name": "Largest Integrator",
+   "side": "Not Measured",
+   "detail": "Not available",
+   "plain": "The largest frontend's share of the fees paid over the last 30 days. Bullish under 50%; Bearish over 80%.",
+   "source": "intents.near chain sample",
+   "query": "analysis/readings.mjs largestIntegrator → data/snapshot/days"
+  },
+  {
+   "id": "Q5",
+   "name": "Path to Deflation",
+   "side": "Neutral",
+   "detail": "90-day revenue did not move one way over the last 3 months",
+   "plain": "Whether the 90-day revenue total rose (or fell) at each of the last three month-ends.",
+   "source": "DefiLlama, all Intents",
+   "query": "analysis/readings.mjs q5 → data/snapshot/defillama_daily.json"
+  }
+ ],
+ "verdict": {
+  "verdict": "Undecided",
+  "score": 1,
+  "missing": 3
+ },
+ "concentration": null,
+ "solvers": null,
+ "vstar": {
+  "todayUsd": 3897049479,
+  "priceUsd": 3.87,
+  "at16": {
+   "low": 11847677502.69996,
+   "mid": 12267427108.420341,
+   "high": 50293704597.966705
+  },
+  "at25": {
+   "low": 18669484823.497124,
+   "mid": 19330923227.0897,
+   "high": 79252457242.79787
+  },
+  "multiple16": 3.1478756363052947,
+  "multiple25": 4.960399741203722
+ },
+ "notes": {
+  "llamaLastDay": "2026-11-02",
+  "llamaLastDayCapture": 1.4811379097093382
+ },
+ "labelCheck": {
+  "rule": "Labels with confidence 'secondary' dropped; the readings use referral names, so sides and shares stay the same",
+  "secondaryLabels": 5,
+  "sidesChange": false,
+  "namesThatChange": []
+ },
+ "text": {
+  "asOf": "2026-11-03",
+  "fixed": [
+   "Tideline asks whether NEAR Intents fees could ever cover the new NEAR being issued. This is research, not financial advice.",
+   "A Bullish reading means the evidence passed a line set in advance, not that the price will rise."
+  ],
+  "live": [
+   "As of 3 Nov, too little is measured to lean either way.",
+   "One reading points Bullish: NEAR's share of fees is 35% over the last 30 days. The DefiLlama figures come from a dataset nobody can re-run for free.",
+   "Not measured yet: Pricing Power, Solver Competition and Largest Integrator.",
+   "Monthly volume would need to reach about 3.1x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.0x if issuance stays at 2.5%, with all revenue spent on buybacks."
+  ]
+ }
+}
