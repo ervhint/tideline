@@ -159,4 +159,4 @@ Dropped 3 Nov 2026: the human stopped using Figma, and the site now follows DESI
 | T-T2.2 | PLAN T2 | unit | Freeze the same fake day twice, with the input in another order | Same bytes | ✅ pass | analysis/chain_day.test.mjs, pipeline/chain_day.test.mjs |
 | T-T2.3 | PLAN T2 | unit | Capped listing, under 99% read, no swaps, day not over | Nothing written; the run fails with the reason | ✅ pass | pipeline/chain_day.test.mjs |
 | T-T2.4 | PLAN T2 | cli | Edit a count in a day file, run `npm run verify` | FAIL naming the count; exit non-zero | ✅ pass | pipeline/chain_day.test.mjs |
-| T-T2.5 | PLAN T2 | cli, Actions | Run `chain-day` on `test` for 2026-11-03, then `attest:send` and `attest:check` | About 20,900 swaps, `attest:check` MATCH | ⏭ not run | |
+| T-T2.5 | PLAN T2 | cli, Actions | Run `chain-day` on `test` for 2026-11-03, then `attest:send` and `attest:check` | About 20,900 swaps, anchored hash equals the file's | ✅ pass | chain-day run 41837332718 (20,925 swaps, $34.2M, 1h34m); attest-days run 41857233332; site reads state `anchored`, both hashes `d0c30363…6973` |
