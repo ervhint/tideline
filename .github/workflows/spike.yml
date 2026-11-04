@@ -1,0 +1,33 @@
+name: spike
+
+# T1 (docs/PLAN.md §6a): one UTC day of intents.near settlement from FastNEAR, priced from DefiLlama: a sample, a solver
+# census and the fee-account route. Runs on pushes to `test` that change the spike, or by hand. About 60 min.
+# Keyless public reads only: it commits, signs and sends nothing. The numbers are in the run summary and the `spike` artifact.
+# FEE_ACCOUNTS (comma-separated) runs the fee-account route alone on those accounts; FEE_WEEKS sets how far back.
+on:
+  push:
+    branches: [test]
+    paths: [pipeline/chain_spike.mjs, pipeline/chain_gap.mjs, pipeline/chain_attrib.mjs, pipeline/chain_io.mjs, analysis/chain_swaps.mjs, .github/workflows/spike.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  spike:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      # chain_spike (runs 1 to 3) or chain_gap (run 4: transfer-filled swaps) or chain_attrib (run 5: naming transfer swaps)
+      SPIKE_SCRIPT: chain_attrib
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node pipeline/$SPIKE_SCRIPT.mjs ${{ vars.SPIKE_DAY }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spike
+          path: spike/

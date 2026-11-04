@@ -2,7 +2,7 @@
 import { concentration } from './readings.mjs';
 import { BUCKETS } from './snapshot.mjs';
 
-const events = (tx) => (tx.receipts ?? []).flatMap((r) => (r.execution_outcome?.outcome?.logs ?? []).flatMap((l) => {
+export const events = (tx) => (tx.receipts ?? []).flatMap((r) => (r.execution_outcome?.outcome?.logs ?? []).flatMap((l) => {
   if (!l.startsWith('EVENT_JSON:')) return [];
   try { const e = JSON.parse(l.slice(11)); return e.standard === 'dip4' ? [e] : []; } catch { return []; }
 }));

@@ -1,6 +1,6 @@
 # Tideline: build plan
 
-Status: draft, 4 Nov 2026. T0 done.
+Status: draft, 4 Nov 2026. T0 done. T1 measured (§6a); the human chose to go on the census.
 
 ## 1. Why public chain data only
 
@@ -90,8 +90,42 @@ Deadline 14 Nov 23:59 UTC.
 
 About 32 hours of work plus Actions runtime, which is tight but fits if T1 passes by 6 Nov.
 
+## 6a. T1 results (4 Nov 2026, day 2026-11-03)
+
+Three runs of `pipeline/chain_spike.mjs` in Actions (`spike.yml` on the `test` branch): 41781760546 (sample of 4,000), 41783958481 (sample of 2,000 plus solver census), 41790799455 (fee-account route, 52 weeks). Keyless FastNEAR and DefiLlama only.
+
+| Measure | Result |
+| --- | --- |
+| Settlement transactions (signed by `intents.near`) | 90,684 on the day; listing takes 8 to 10 min (454 calls) |
+| Free-tier pace | 1 call a second: 429 on 2% to 5% of calls (15 of 825, 115 of 2,972, 25 of 518), all recovered, no errors |
+| Sample run (list + read 4,000) | **12 min.** Only 8% of settlement transactions hold a swap, so 4,000 give about 350 swaps |
+| Sampled volume | $20M with a 95% interval of $1M to $39M (run 1), $20M with -$6M to $47M (run 2). One $300k swap in the sample carries most of it. **A sample can't pin daily volume down** |
+| Solver census | Every transaction whose dip4 logs name one of the 17 solvers seen in the sample: 38,223 transactions, **7,722 token_diff swaps, $9.30M in** (97% of swaps priced). It holds 98.8% of the sample's token_diff swap transactions. Solvers picked from half the sample fill 94% of the other half's swaps (100% of their USD). **Not complete:** both checks only see swaps written as a token_diff with a referral. Swaps filled by plain dip4 transfers carry no referral and aren't counted; they likely sit in the census's other ~30,000 transactions. A private cross-check (not stored here) says the count is well short. Under check in a fourth run |
+| Census run time | **45 min** without the full listing (5 min listing solvers, 38 min reading), 56 min with it. The solvers' accounts also appear in about 30,000 settlement transactions that are not swaps |
+| Volume vs DefiLlama ($137.9M) | **Census ×0.067.** All token_diff ÷ 2 gives the same ($9.06M). DefiLlama's number is one value from NEAR's Dune dataset `dataset_near_intents_metrics.volume_amount_usd`, whose definition is not public. Transactions not signed by `intents.near` (35% of those sent to it in the first hour; signers `escrow.ai.near`, `bridge-mng.near`, `omni-relayer.bridge.near`) held no token_diff swaps (0 of 200). DefiLlama covers all Intents, not just 1Click, so it isn't the right yardstick for the 1Click count either |
+| Prices | 97% of swaps priced (HOT tokens mapped from base58 addresses). Both sides of a swap agree within 5% on 99.9% of 3,396 checked swaps, median 0.9998, so ids and decimals are right. Unpriced: HOT TON tokens (`1117_`), `tron-` and `sol-` omft tokens |
+| `1click-unknown` | 36% of swaps, 17% of USD (census) |
+| App fee | A dip4 `transfer` from the swapping account on 81% of swaps; its rate is readable on 76%. `5880ad…` (AC-3.3) receives on 43% of swaps, at about 5 bps, across many referrals |
+| Protocol fee | `fees_collected` on 99% of swaps, median 0.01 bps |
+| Solvers | Found for 100% of census swaps. Top: `blockzen-1-main.near`, `solver-priv-liq.near`, `solver-multichain-asset.near`, `kipseli.near` |
+| Referral mix (census USD) | LI.FI $2.85M, SwapKit $2.25M, unknown $1.57M, Rango $1.00M, Zodl $0.32M; 90 referrals |
+| Fee-account route | Works and is cheap: 2 calls a week, a year of one account in about 2 min, history back to Nov 2025. **No clean fee-change event found.** SwapKit `trustswapkit.near` 70 bps every week for a year; LI.FI `fae85d…` 5 bps since Mar 2026; `2f09a4…` 70 bps with two one-week dips (noise). `dde5bb…`, `c4d748…`, `2da316…` are shared by several apps at different rates, so their weekly mode flips. One candidate: `dde5bb…` (SwapKit apps) mostly 20 → 10 bps around 17 to 24 Mar 2026, not clean |
+
+**Run 4** (41797905924, `pipeline/chain_gap.mjs`): the missing swaps are transfer fills, almost all through one hub.
+
+| Measure | Result |
+| --- | --- |
+| Hub | `51e8f94d…7cbe` sends transfers to and gets them from hundreds of accounts in the sample; it is in no token_diff. Census over the 17 solvers plus the hub: 66,999 transactions |
+| Transfer swaps | **13,208 swaps, $24.96M** (an account sends tokens to a filler and gets a different token back, always across two transactions). 13,080 of them ($24.10M) through the hub |
+| All swaps | token_diff 7,669 ($8.78M) + transfer 13,208 ($24.96M) = **20,877 swaps, $33.7M**. By size: $0–1k 17,821; $1k–10k 1,918; $10k–100k 509; $100k+ 52. A private cross-check (not stored here) agrees closely on count and size mix; USD is somewhat short in the largest swaps, where 577 unpriced swaps also sit |
+| Referral | **Transfer swaps carry no referral**: 13,128 of them have no fee transfer in the census transactions, so no frontend can be named for about 63% of swaps and 74% of USD. Whether their fees show up elsewhere (fee accounts' own listings) isn't checked yet |
+| Run time | 94 min (13 min listing fillers, 68 min reading). A daily job without the full settlement listing: about 80 min |
+
+**Gate as written: not met.** But the count question is mostly answered: chain data finds about the right number of swaps and most of the USD. The open problem is naming the frontend for transfer swaps (Q4, Follow the fee). Decision in §7.
+
 ## 7. Decisions for the human
 
+0. **T1 go/no-go (§6a).** Run 4 finds the missing swaps (transfer fills through one hub), but they carry no referral. Recommended: one more short run (about 20 min) that lists the known fee accounts for the day, to see whether transfer swaps pay frontend fees that can name them. Then go to T2 with the census of 17 solvers plus the hub (about 80 min a day in Actions); if transfer swaps can't be named, Q4 and Follow the fee read on the token_diff part only, and say so. The chain census becomes the measure for swaps, referrals, solvers, fees and cost (Q3, Q4, Follow the fee, coverage). DefiLlama stays the source for V*, Q2 and Q5, and the site says plainly that settled swaps are about 7% of DefiLlama's volume figure. The daily job is about 45 min in Actions. Backfill is about 45 min a day of history, so 30 days is about 23 hours of Actions time, spread over several runs. Q1 probably reads Not Measured: T5 scans every fee account, but clean events look rare.
 1. **A paid FastNEAR key** would speed up backfill (and maybe allow full days instead of samples). The price is unknown. Judges wouldn't need it: the snapshot and the sampled hashes let them re-run at free speed. Recommended: no key unless T1 fails on speed alone.
 
 ## 8. Not sure yet
