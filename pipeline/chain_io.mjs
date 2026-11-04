@@ -49,14 +49,19 @@ export function chain({ gapMs = 1000, maxPages = 1500 } = {}) {
     return out;
   }
 
+  // RPC at most one call per 250 ms. Its free tier also answers -429 when busy, so it gets 10 tries over about 4 minutes.
+  let lastRpc = 0;
   const rpc = (method, params) => retry('NEAR RPC', async () => {
+    const wait = lastRpc + 250 - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastRpc = Date.now();
     stats.rpcCalls++;
     const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }), signal: AbortSignal.timeout(30_000) });
     const j = await r.json();
     if (j.error?.cause?.name === 'UNKNOWN_BLOCK') return null;
     if (j.error) throw new Error(JSON.stringify(j.error).slice(0, 200));
     return j.result;
-  });
+  }, { tries: 10, waitMs: 5_000 });
   const tsOf = (b) => Number(BigInt(b.header.timestamp) / 1_000_000n) / 1000; // seconds
   // The first existing block at or after height h (heights can be skipped).
   async function blockFrom(h) {

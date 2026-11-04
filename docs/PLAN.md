@@ -121,11 +121,13 @@ Three runs of `pipeline/chain_spike.mjs` in Actions (`spike.yml` on the `test` b
 | Referral | **Transfer swaps carry no referral**: 13,128 of them have no fee transfer in the census transactions, so no frontend can be named for about 63% of swaps and 74% of USD. Whether their fees show up elsewhere (fee accounts' own listings) isn't checked yet |
 | Run time | 94 min (13 min listing fillers, 68 min reading). A daily job without the full settlement listing: about 80 min |
 
+**Run 5** (41825809719, `pipeline/chain_attrib.mjs`): can transfer swaps be named? No. 300 accounts that swapped through the hub, each followed through all its transactions that day (most have 2 to 4): 79% pay no fee to anyone; 19% pay only `609214…`, a fee account shared by SwapKit, LI.FI and unknown swaps, so it names no one; 1% carry a referral (`1click-unknown`); none pay a single-referral fee account. The hub itself pays no fee accounts either. So on chain, **transfer swaps (about 63% of swaps, 74% of USD) can't be named to a frontend.** Any app fee on them, if there is one, isn't a visible transfer.
+
 **Gate as written: not met.** But the count question is mostly answered: chain data finds about the right number of swaps and most of the USD. The open problem is naming the frontend for transfer swaps (Q4, Follow the fee). Decision in §7.
 
 ## 7. Decisions for the human
 
-0. **T1 go/no-go (§6a).** Run 4 finds the missing swaps (transfer fills through one hub), but they carry no referral. Recommended: one more short run (about 20 min) that lists the known fee accounts for the day, to see whether transfer swaps pay frontend fees that can name them. Then go to T2 with the census of 17 solvers plus the hub (about 80 min a day in Actions); if transfer swaps can't be named, Q4 and Follow the fee read on the token_diff part only, and say so. The chain census becomes the measure for swaps, referrals, solvers, fees and cost (Q3, Q4, Follow the fee, coverage). DefiLlama stays the source for V*, Q2 and Q5, and the site says plainly that settled swaps are about 7% of DefiLlama's volume figure. The daily job is about 45 min in Actions. Backfill is about 45 min a day of history, so 30 days is about 23 hours of Actions time, spread over several runs. Q1 probably reads Not Measured: T5 scans every fee account, but clean events look rare.
+0. **T1 go/no-go (§6a).** Decided 4 Nov: go on the census of 17 solvers plus the hub (about 80 min a day in Actions). Run 5 shows transfer swaps can't be named to a frontend, so Q4 and Follow the fee by frontend read on the token_diff swaps only (about 37% of swaps, 26% of USD), and the site says so. Totals, size mix and solvers use all swaps.
 1. **A paid FastNEAR key** would speed up backfill (and maybe allow full days instead of samples). The price is unknown. Judges wouldn't need it: the snapshot and the sampled hashes let them re-run at free speed. Recommended: no key unless T1 fails on speed alone.
 
 ## 8. Not sure yet
