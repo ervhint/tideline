@@ -109,7 +109,7 @@ export function chain({ gapMs = 1000, maxPages = 1500 } = {}) {
     }
     const dec = (token) => decimals.get(token) ?? (token.startsWith('nep245:') ? llamaDecimals.get(llamaId(token)) ?? null : null);
     const priceAt = (ts) => (token) => { const id = llamaId(token); return id && ts ? prices.get(`${hourOf(ts)}|${id}`) ?? null : null; };
-    return { priceAt, dec, calls };
+    return { priceAt, dec, calls, prices };
   }
 
   return { stats, fast, listAccount, readTxs, rpc, heightAt, priceBook };

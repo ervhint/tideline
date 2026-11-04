@@ -22,6 +22,9 @@ const labels = json('data/labels/frontends.json').labels;
 // Snapshot rows of the last 30 days.
 const dayFiles = (existsSync('data/snapshot/days') ? readdirSync('data/snapshot/days') : []).filter((f) => f.endsWith('.csv.gz')).sort();
 const lastSnapshotDay = dayFiles.at(-1)?.slice(0, 10) ?? null;
+// The last frozen chain day (T2) is what the Data Is Late banner reads. Q4 and the solver columns still wait for T3 to T6 to read these days.
+const chainDays = (existsSync('data/chain') ? readdirSync('data/chain') : []).filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f)).sort();
+const lastChainDay = chainDays.at(-1)?.slice(0, 10) ?? null;
 const rows = dayFiles.slice(-30).flatMap((f) =>
   gunzipSync(readFileSync(`data/snapshot/days/${f}`)).toString().split('\n').slice(1).filter(Boolean).map((l) => {
     const [day, referral, fee_bps, bucket, , usd_in] = l.split(',');
@@ -71,7 +74,7 @@ const v16 = at(1.6), v25 = at(2.5);
 const result = {
   asOf: inputs.asOf,
   prereg: null, // Tideline's PREREG.md is written in T4
-  snapshotLastDay: lastSnapshotDay,
+  snapshotLastDay: lastChainDay,
   readings: R,
   verdict: v,
   // S6: largest frontend's share of fees per size bucket, last 30 days of the chain sample. Solver columns need solver data.

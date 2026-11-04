@@ -1,0 +1,73 @@
+{
+ "source": "intents.near census of solvers and the transfer hub (FastNEAR, NEAR RPC), priced from DefiLlama",
+ "query": "analysis/chain_day.mjs summarizeDays → data/chain/*.jsonl",
+ "days": [
+  {
+   "day": "2026-11-03",
+   "swaps": 20925,
+   "tokenDiffSwaps": 7717,
+   "transferSwaps": 13208,
+   "usd": 34197417.37,
+   "tokenDiffUsd": 9245353.12,
+   "tokenDiffShareOfSwaps": 0.3687933094384707,
+   "tokenDiffShareOfUsd": 0.27035237836733383,
+   "unpricedSwaps": 577,
+   "byBucket": {
+    "0-1k": {
+     "swaps": 17864,
+     "usd": 2009635.05
+    },
+    "1k-10k": {
+     "swaps": 1916,
+     "usd": 7164576.05
+    },
+    "10k-100k": {
+     "swaps": 515,
+     "usd": 14352937
+    },
+    "100k+": {
+     "swaps": 53,
+     "usd": 10670269.27
+    },
+    "unpriced": {
+     "swaps": 577,
+     "usd": 0
+    }
+   },
+   "namedShareOfTokenDiffUsd": 0.8305438851642392,
+   "topReferrals": [
+    {
+     "referral": "1click-lifi",
+     "usd": 2830260.52
+    },
+    {
+     "referral": "1click-swapkit",
+     "usd": 2238701.26
+    },
+    {
+     "referral": "1click-unknown",
+     "usd": 1566681.62
+    },
+    {
+     "referral": "1click-rango",
+     "usd": 987232.73
+    },
+    {
+     "referral": "1click-zodl",
+     "usd": 319210.56
+    }
+   ],
+   "solvers": 206,
+   "fillers": 19,
+   "census": {
+    "listed": 67199,
+    "read": 67200,
+    "readShare": 1.00001,
+    "digest": "979573552a98a5217222104b1c47d6814d26e239dc82bca73e952808848a4012"
+   }
+  }
+ ],
+ "firstDay": "2026-11-03",
+ "lastDay": "2026-11-03",
+ "gaps": []
+}

@@ -81,7 +81,7 @@ Deadline 14 Nov 23:59 UTC.
 | --- | --- | --- | --- |
 | T0 | **Repo and rename.** Private `ervhint/tideline`; site and docs say Tideline; secrets added; `contract-deploy` to `tideline-thesis.testnet` | 3h | Done 4 Nov: `npm test` passes, site runs locally with DefiLlama readings, contract deployed |
 | T1 | **Spike, go or no-go.** One-day chain sampler. Measure time per day, 429 rate, settled volume vs DefiLlama, `1click-unknown` share, app-fee detection, price coverage, and the fee-account route for 3 real events | 4h | Numbers written down. **Go** if a daily sample runs in under 30 minutes in Actions and the sampled volume lands within ±25% of DefiLlama. Otherwise stop and decide with the human |
-| T2 | **Daily chain snapshot.** Seeded sample per day, snapshot by referral × fee × size bucket, freeze and attest each finished day, verify rebuilds it with no network | 6h | `npm run verify` OK; `attest:check` MATCH on a frozen day |
+| T2 | **Daily chain snapshot.** Seeded sample per day, snapshot by referral × fee × size bucket, freeze and attest each finished day, verify rebuilds it with no network | 6h | `npm run verify` OK; `attest:check` MATCH on a frozen day. Built 4 Nov (`pipeline/chain_day.mjs`, `analysis/chain_day.mjs`, `chain-day.yml`); first real day still to run |
 | T3 | **Backfill 30–60 days** in Actions runs (for Q4, solvers, fee trace) | runtime | Days frozen, gaps shown, never filled in |
 | T4 | **Realised cost.** Q3 spread and Follow the fee from realised swaps; PREREG.md with the not-blind statement | 5h | Cost parts sum within 0.5 bps, remainder shown (INV-4) |
 | T5 | **Elasticity on chain** by the §5 route the spike picks; E2 only if it fits | 8h | Elasticity outputs as SRS E1 defines them, or Q1 Not Measured with the reason |

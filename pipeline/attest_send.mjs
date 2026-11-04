@@ -1,4 +1,4 @@
-// attest:send: writes every finished quote day the contract lacks. A record can never be
+// attest:send: writes every finished chain day the contract lacks. A record can never be
 // changed, so it reads each one back and stops at the first surprise. Runs in GitHub Actions
 // with the near CLI; --dry-run prints what it would send and needs no key.
 import { spawnSync } from 'node:child_process';
@@ -90,7 +90,7 @@ async function main() {
   const privateKey = process.env.NEAR_ATTEST_PRIVATE_KEY;
   if (!dryRun && !privateKey) throw new Error('NEAR_ATTEST_PRIVATE_KEY is not set');
 
-  const quotesDir = process.env.QUOTES_DIR ?? join(ROOT, 'data', 'quotes');
+  const quotesDir = process.env.CHAIN_DIR ?? join(ROOT, 'data', 'chain');
   const days = finishedDays(await readdir(quotesDir), new Date());
   const results = await sendPending(days, {
     dryRun,

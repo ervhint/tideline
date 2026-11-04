@@ -1,4 +1,4 @@
-// attest:check <day>: hash data/quotes/<day>.jsonl and compare it with the testnet contract.
+// attest:check <day>: hash data/chain/<day>.jsonl and compare it with the testnet contract.
 // Read-only, no key. Contract id and RPC come from contract/deployment.json (or env).
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -48,7 +48,7 @@ async function main() {
     console.error('COULD NOT CHECK: no contract deployed yet (contract/deployment.json is missing)');
     return EXIT.error;
   }
-  const quotesDir = process.env.QUOTES_DIR ?? join(ROOT, 'data', 'quotes');
+  const quotesDir = process.env.CHAIN_DIR ?? join(ROOT, 'data', 'chain');
   const { status, local, record } = await checkDay(day, { quotesDir, rpcUrl, contractId });
   console.log(`day      ${day}`);
   console.log(`contract ${contractId}`);

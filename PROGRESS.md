@@ -26,6 +26,16 @@
 
 Follow the Fee, Elasticity and Concentration, and the Method page's spot-check and coverage blocks, still show the prototype's sample text until T2 to T6 rebuild them from the chain sample. `data/published/model_inputs.json` is from 3 Nov; the refresh job updates it once its schedule is back (T2).
 
+## T2 daily chain snapshot: built, first real day not run yet (4 Nov 2026)
+
+- `pipeline/chain_day.mjs` freezes one finished UTC day as `data/chain/<day>.jsonl`: fillers carried forward in `data/chain/fillers.json` (only grows; a seeded sample of settlement transactions looks for new ones once a week or with DISCOVER=1), census of every transaction naming a filler, token_diff swaps plus transfer swaps, priced hourly from DefiLlama. The file holds swaps grouped by kind × solver × referral × app fee × size bucket, routes, and the decimals and prices used. No wallet addresses. Same inputs give the same bytes.
+- A day is written once, never changed. It stays a gap (the run fails, nothing is written) if a listing was cut short, under 99% of the listed transactions were read, or no swaps were found. A day freezes 2 hours after it ends.
+- `pipeline/build_chain_days.mjs` writes `data/published/chain_days.json` (per-day totals, token_diff share of swaps and USD, unpriced swaps, gaps) and fails on a damaged day file. `verify` rebuilds it with no network (3 files, 96 values). `snapshotLastDay` in `thesis.json` now reads the last frozen chain day, so the Data Is Late banner clears once one exists. Q4 and the solver columns still read the old `data/snapshot/days` and stay Not Measured until T3 to T6.
+- `attest:check`, `attest:send` and the site's Reproduce page now read `data/chain/` (env `CHAIN_DIR`) instead of `data/quotes/`.
+- `chain-day.yml`: by hand only, inputs day, commit (default off, then it uploads the files as an artifact) and discover. The schedule stays off. About 80 to 95 min.
+- Tests: `npm test` 156/156, `tsc --noEmit` clean. The census itself ran only against a fake chain; the first real run is the next step. gitleaks flags only the gitignored `.next` dev cache.
+- Uncertain: swaps are token_diff entries with a referral plus transfer swaps, as measured in T1. Direct token_diff swaps with no referral, if any, are not counted. A filler found on day D is read from D on; earlier days keep the list they were frozen with (each file names it).
+
 ## Next
 
-T2: daily chain snapshot (docs/PLAN.md §6), Sonnet 5.5 · medium, in a new chat. Build the daily census from `chain_io.mjs` and `chain_swaps.mjs`: 17 solvers plus the hub, carried forward, with a weekly sample to find new fillers; token_diff and transfer swaps both counted. Frontend readings use token_diff swaps only (run 5); the site says what share that is. Still open from PLAN §7: a paid FastNEAR key, recommended no.
+T2 first real day: run `chain-day` on `test` for 2026-11-03 with commit off, check the counts against T1 (about 20,900 swaps, $33.7M), then run it with commit on, `attest:send` the day, and `attest:check` must say MATCH. Then turn the schedule on. T3 backfills 30 to 60 days. Still open from PLAN §7: a paid FastNEAR key, recommended no.

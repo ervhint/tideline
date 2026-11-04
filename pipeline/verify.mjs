@@ -10,10 +10,12 @@ import { pathToFileURL } from 'node:url';
 const pub = process.env.PUBLISHED_DIR ?? 'data/published';
 const TOL = 1e-9;
 
-// Each file is rebuilt by the script that wrote it. elasticity, fee_trace and token_board come back as T2 to T5 rebuild them from the chain sample.
+// Each file is rebuilt by the script that wrote it. chain_days.json comes from the frozen day files in data/chain (T2), which build_chain_days checks
+// for consistency first. elasticity, fee_trace and token_board come back as T3 to T5 rebuild them from the chain sample.
 const checks = [
   { file: 'thesis.json', script: 'pipeline/build_thesis.mjs' },
   { file: 'reconciliation.json', script: 'pipeline/build_reconciliation.mjs' },
+  { file: 'chain_days.json', script: 'pipeline/build_chain_days.mjs' },
 ];
 const inputs = ['model_inputs.json', 'fee_account.json'];
 

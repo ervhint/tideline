@@ -150,3 +150,13 @@ Dropped 3 Nov 2026: the human stopped using Figma, and the site now follows DESI
 - [ ] S7 against its frame at 1440 and 375
 - [ ] S8 against its frame at 1440 and 375
 - [ ] Number sheet against its frame at 1440 and 375
+
+## T2: daily chain snapshot (4 Nov 2026)
+
+| ID | Covers | Type | Steps (short) | Expected | Result | Evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-T2.1 | PLAN T2 | unit | Fixture day with a token_diff swap, transfer swaps, a double-counted user | Each swap counted once, grouped by kind × solver × referral × fee × bucket, no wallet addresses | ✅ pass | analysis/chain_day.test.mjs |
+| T-T2.2 | PLAN T2 | unit | Freeze the same fake day twice, with the input in another order | Same bytes | ✅ pass | analysis/chain_day.test.mjs, pipeline/chain_day.test.mjs |
+| T-T2.3 | PLAN T2 | unit | Capped listing, under 99% read, no swaps, day not over | Nothing written; the run fails with the reason | ✅ pass | pipeline/chain_day.test.mjs |
+| T-T2.4 | PLAN T2 | cli | Edit a count in a day file, run `npm run verify` | FAIL naming the count; exit non-zero | ✅ pass | pipeline/chain_day.test.mjs |
+| T-T2.5 | PLAN T2 | cli, Actions | Run `chain-day` on `test` for 2026-11-03, then `attest:send` and `attest:check` | About 20,900 swaps, `attest:check` MATCH | ⏭ not run | |

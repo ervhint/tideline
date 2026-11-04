@@ -1,0 +1,69 @@
+name: chain-day
+
+# T2 (docs/PLAN.md §6): freezes one finished UTC day of intents.near swaps into data/chain/<day>.jsonl (about 80 to 95 min).
+# Keyless public reads only (FastNEAR, NEAR RPC, DefiLlama). By hand until T2 has frozen the first day; the schedule stays off
+# until then (AGENTS.md). A day is written once and never changed. A day that cannot be read well stays a gap, and the run fails.
+# It commits only after `npm run verify` passes, and only when `commit` is on (a dry run uploads the files as an artifact).
+# DISCOVER on looks for new solvers and hubs today; otherwise that happens once a week.
+on:
+  # A push to `test` that changes this file runs it with commit off and the day below (the first real day, to compare with T1).
+  # Remove this trigger once the workflow is on main, where it can be started by hand.
+  push:
+    branches: [test]
+    paths: [.github/workflows/chain-day.yml]
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'UTC day, YYYY-MM-DD (empty: the day before yesterday)'
+        type: string
+        default: ''
+      commit:
+        description: 'Commit the frozen day to the branch this run is on'
+        type: boolean
+        default: false
+      discover:
+        description: 'Look for new solvers and hubs today'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency: chain-day
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Freeze the day
+        env:
+          DISCOVER: ${{ inputs.discover && '1' || '' }}
+          DAY: ${{ inputs.day || (github.event_name == 'push' && '2026-11-03') || '' }}
+        run: node pipeline/chain_day.mjs $DAY
+      - name: Rebuild chain_days.json and check it
+        run: |
+          node pipeline/build_chain_days.mjs
+          node pipeline/build_thesis.mjs
+          node pipeline/build_reconciliation.mjs
+          npm run verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chain
+          path: |
+            data/chain/
+            data/published/chain_days.json
+      - name: Commit
+        if: inputs.commit
+        run: |
+          git config user.name "tideline-chain"
+          git config user.email "tideline-chain@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "data: freeze chain day"
+          for i in 1 2 3; do git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 10; done
+          exit 1

@@ -1,0 +1,100 @@
+{
+ "updated": "2026-11-03",
+ "fillers": [
+  {
+   "account": "0x4f77780141b0770a33d270ee255beb25c9568c7b",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "0x8c60fa34790d4661ae4b5302f2a654539352e81b",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "0x94845333028b1204fbe14e1278fd4adde46b22ce.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "111-testing-funds.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+   "kind": "hub",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "6247d9c671ca6a80cf2c75e26edb8cd75ebf00fcd3c56c39107d6ca20c9cfb29",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "bestswap.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "blockzen-1-main.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "blockzen-near-intent.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "brlabs-solver.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "crux-solver.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "defuse-relay.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "kipseli.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "solver-multichain-asset-2.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "solver-multichain-asset-escrow.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "solver-multichain-asset.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "solver-priv-liq.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "solver-ref.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  },
+  {
+   "account": "solverwithlp.near",
+   "kind": "solver",
+   "since": "2026-11-03"
+  }
+ ]
+}

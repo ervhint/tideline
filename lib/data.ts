@@ -48,9 +48,9 @@ async function listQuoteDays(): Promise<string[]> {
   let names: string[] | null = null;
   if (t) {
     try {
-      names = await listRepoDir('data/quotes', { token: t });
+      names = await listRepoDir('data/chain', { token: t });
     } catch (e) {
-      console.warn(`GitHub list failed for data/quotes, using the disk copy: ${(e as Error).message}`);
+      console.warn(`GitHub list failed for data/chain, using the disk copy: ${(e as Error).message}`);
     }
   }
   names ??= await readdir(quotesDir()).catch(() => []);
@@ -125,12 +125,12 @@ export async function getThesisBytes() {
 // Quote days with size and SHA-256 (the hash attest:check compares with the chain), and one day's file as stored.
 export async function getQuoteList() {
   const days = (await listQuoteDays()).sort();
-  const files = await Promise.all(days.map(async (day) => ({ day, bytes: await readData(`data/quotes/${day}.jsonl`) })));
+  const files = await Promise.all(days.map(async (day) => ({ day, bytes: await readData(`data/chain/${day}.jsonl`) })));
   return files.flatMap((f) => (f.bytes ? [{ day: f.day, bytes: f.bytes.length, sha256: createHash('sha256').update(f.bytes).digest('hex') }] : []));
 }
 
 export async function getQuoteDay(day: string) {
-  return readData(`data/quotes/${day}.jsonl`);
+  return readData(`data/chain/${day}.jsonl`);
 }
 
 // NFR-6: freshness from the last frozen day, plus the hash of the published numbers.
@@ -147,7 +147,7 @@ export async function getStatus() {
 }
 
 // S5 and /api/attest read the real contract; the hash comes from the same quote file attest:check uses.
-const quotesDir = () => path.join(process.cwd(), 'data', 'quotes');
+const quotesDir = () => path.join(process.cwd(), 'data', 'chain');
 
 async function readDeployment() {
   const d = JSON.parse(await readFile(path.join(process.cwd(), 'contract', 'deployment.json'), 'utf8'));
@@ -155,7 +155,7 @@ async function readDeployment() {
 }
 
 async function checkDay(day: string, target: RpcTarget): Promise<DayCheck> {
-  const bytes = await readData(`data/quotes/${day}.jsonl`);
+  const bytes = await readData(`data/chain/${day}.jsonl`);
   const record: AttestRecord | null = await callView('get', { day }, target);
   return { day, local: bytes && createHash('sha256').update(bytes).digest('hex'), record };
 }
