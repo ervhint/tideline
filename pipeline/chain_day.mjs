@@ -8,7 +8,7 @@
 //   4. Freeze: written once and never changed. A day that cannot be read well enough (a capped listing, under 99% read,
 //      no swaps) is not written: it stays a gap, shown and never filled in.
 //
-// Usage: node pipeline/chain_day.mjs [YYYY-MM-DD]   (default: the day before yesterday UTC, which is certainly over)
+// Usage: node pipeline/chain_day.mjs [YYYY-MM-DD]   (default: yesterday UTC; it is over 2 hours after midnight, so the 03:17 schedule is safe)
 //   env CHAIN_DIR (default data/chain), GAP_MS (FastNEAR pacing, default 1000), DISCOVER=1 (look for new fillers today)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -23,7 +23,7 @@ export const SETTLE_HOURS = 2;
 export const REDISCOVER_DAYS = 7;
 export const DISCOVER_SAMPLE = 2000;
 
-export const defaultDay = (now) => new Date(now.getTime() - 2 * DAY_MS).toISOString().slice(0, 10);
+export const defaultDay = (now) => new Date(now.getTime() - DAY_MS).toISOString().slice(0, 10);
 export const isOver = (day, now) => Date.parse(`${day}T00:00:00Z`) + DAY_MS + SETTLE_HOURS * 3_600_000 <= now.getTime();
 export const needsDiscovery = (doc, day, force = false) => force || !doc || Date.parse(`${day}T00:00:00Z`) - Date.parse(`${doc.updated}T00:00:00Z`) >= REDISCOVER_DAYS * DAY_MS;
 

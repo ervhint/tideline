@@ -4,6 +4,8 @@ name: refresh
 # It commits only when a number changed, and only after `npm run verify` passes. GitHub runs schedules late.
 # Telegram goes out after the push, so a failed push never sends a message. Without the two Telegram secrets it prints the message.
 on:
+  schedule:
+    - cron: '23 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:

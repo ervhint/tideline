@@ -72,10 +72,10 @@ test('a day that cannot be read well is not frozen', async () => {
   await assert.rejects(runDay({ day: '2026-11-03', io: fake({ readTxs: async (h) => h.map(() => tx('N')) }), fillersDoc: doc, log: quiet }), /no swaps|could be read/);
 });
 
-test('a day freezes only after it is over, and the default is the day before yesterday', () => {
+test('a day freezes only after it is over, and the default is yesterday', () => {
   assert.equal(isOver('2026-11-03', new Date('2026-11-04T01:59:00Z')), false);
   assert.equal(isOver('2026-11-03', new Date('2026-11-04T02:00:00Z')), true);
-  assert.equal(defaultDay(new Date('2026-11-05T12:00:00Z')), '2026-11-03');
+  assert.equal(defaultDay(new Date('2026-11-05T03:17:00Z')), '2026-11-04');
 });
 
 test('a day that is not over exits non-zero and writes nothing', () => {

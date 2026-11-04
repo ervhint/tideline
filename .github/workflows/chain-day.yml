@@ -1,20 +1,18 @@
 name: chain-day
 
 # T2 (docs/PLAN.md §6): freezes one finished UTC day of intents.near swaps into data/chain/<day>.jsonl (about 80 to 95 min).
-# Keyless public reads only (FastNEAR, NEAR RPC, DefiLlama). By hand until T2 has frozen the first day; the schedule stays off
-# until then (AGENTS.md). A day is written once and never changed. A day that cannot be read well stays a gap, and the run fails.
-# It commits only after `npm run verify` passes, and only when `commit` is on (a dry run uploads the files as an artifact).
+# Keyless public reads only (FastNEAR, NEAR RPC, DefiLlama). Every day at 03:17 UTC it freezes yesterday; GitHub runs schedules late.
+# A day is written once and never changed. A day that cannot be read well stays a gap, the run fails and Telegram says so; the next
+# run does not go back and fill it in.
+# It commits only after `npm run verify` passes. By hand, `commit` decides (default off: the files are uploaded as an artifact).
 # DISCOVER on looks for new solvers and hubs today; otherwise that happens once a week.
 on:
-  # A push to `test` that changes this file runs it with commit off and the day below (the first real day, to compare with T1).
-  # Remove this trigger once the workflow is on main, where it can be started by hand.
-  push:
-    branches: [test]
-    paths: [.github/workflows/chain-day.yml]
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       day:
-        description: 'UTC day, YYYY-MM-DD (empty: the day before yesterday)'
+        description: 'UTC day, YYYY-MM-DD (empty: yesterday)'
         type: string
         default: ''
       commit:
@@ -43,7 +41,7 @@ jobs:
       - name: Freeze the day
         env:
           DISCOVER: ${{ inputs.discover && '1' || '' }}
-          DAY: ${{ inputs.day || (github.event_name == 'push' && '2026-11-03') || '' }}
+          DAY: ${{ inputs.day }}
         run: node pipeline/chain_day.mjs $DAY
       - name: Rebuild chain_days.json and check it
         run: |
@@ -58,7 +56,7 @@ jobs:
             data/chain/
             data/published/chain_days.json
       - name: Commit
-        if: inputs.commit
+        if: github.event_name == 'schedule' || inputs.commit
         run: |
           git config user.name "tideline-chain"
           git config user.email "tideline-chain@users.noreply.github.com"
@@ -67,3 +65,11 @@ jobs:
           git commit -m "data: freeze chain day"
           for i in 1 2 3; do git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 10; done
           exit 1
+      - name: Tell Telegram the day was not frozen
+        if: failure() && github.event_name == 'schedule'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "Tideline: the daily chain snapshot failed, so yesterday stays a gap. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > "$RUNNER_TEMP/failed.txt"
+          node pipeline/telegram.mjs "$RUNNER_TEMP/failed.txt"
