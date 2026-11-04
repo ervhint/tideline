@@ -40,4 +40,4 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 
 ## Next
 
-Switch on the schedules for `chain-day`, `attest-days` and `refresh` (human's yes), then T3: backfill 30 to 60 days. Still open from PLAN §7: a paid FastNEAR key, recommended no.
+T2 is closed once the first scheduled chain-day run (5 Nov, about 03:17 UTC, 10:17 WIB) freezes 2026-11-04 and attest-days anchors it with no hand. Telegram is done (4 Nov): Tideline-only bot `@tideline_thesis_bot`, token and chat id in `.env` (ignored by git) and as repo secrets, test message received; the Actions path (failed-day message) is not exercised yet. Schedules are on (2af49b9): chain-day 03:17 UTC, attest-days 05:41, 08:41, 12:41, refresh hourly at :23. Then T3: backfill 30 to 60 days, in lanes of a few days per job; the human decides the number of days and lanes. Still open from PLAN §7: a paid FastNEAR key, recommended no.
