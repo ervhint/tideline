@@ -108,5 +108,5 @@ test('thesis.json names the last frozen chain day, which is what the Data Is Lat
   const { readdirSync, readFileSync } = await import('node:fs');
   const last = readdirSync('data/chain').filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f)).sort().at(-1)?.slice(0, 10) ?? null;
   assert.equal(JSON.parse(readFileSync('data/published/thesis.json', 'utf8')).snapshotLastDay, last);
-  assert.equal(last, '2026-11-03');
+  assert.ok(last >= '2026-11-03', 'the first frozen day is 2026-11-03; later days only add to it');
 });
