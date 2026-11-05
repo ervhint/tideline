@@ -18,7 +18,8 @@ const COW = 'data/snapshot/cow_daily.json';
 const P = 'data/published';
 const VENUES = 'data/snapshot/control_venues.json';
 const TOKENS = 'data/labels/tokens.json';
-const FILES = [LLAMA, COW, VENUES, TOKENS, `${P}/model_inputs.json`, `${P}/thesis.json`, `${P}/reconciliation.json`, `${P}/token_board.json`, HISTORY];
+const DERIVED = ['chain_days', 'fee_trace', 'elasticity', 'thesis', 'reconciliation', 'token_board'];
+const FILES = [LLAMA, COW, VENUES, TOKENS, `${P}/model_inputs.json`, ...DERIVED.map((f) => `${P}/${f}.json`), HISTORY];
 
 const read = (f) => (existsSync(f) ? readFileSync(f, 'utf8') : null);
 const backup = new Map(FILES.map((f) => [f, read(f)]));
@@ -53,10 +54,9 @@ try {
   settle(`${P}/model_inputs.json`);
   if (existsSync(TOKENS)) settle(TOKENS);
 
-  node('pipeline/build_thesis.mjs');
-  node('pipeline/build_reconciliation.mjs');
-  node('pipeline/build_token_board.mjs');
-  for (const f of ['thesis', 'reconciliation', 'token_board']) settle(`${P}/${f}.json`);
+  // Every derived file, in the order `npm run rebuild` uses: fee_trace reads model_inputs, elasticity reads the control venues.
+  for (const f of DERIVED) node(`pipeline/build_${f}.mjs`);
+  for (const f of DERIVED) settle(`${P}/${f}.json`);
 
   const before = backup.get(`${P}/thesis.json`) && JSON.parse(backup.get(`${P}/thesis.json`));
   const after = JSON.parse(readFileSync(`${P}/thesis.json`, 'utf8'));

@@ -96,6 +96,7 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - Left as is: `analysis/coverage.mjs` and most of `analysis/snapshot.mjs` are Explorer-era code no page uses (only `BUCKETS` is read); `/api/quotes` routes keep their name but serve chain day files; `lib/mock.ts` fallback text still describes the old quote sample (shown only if a published file is missing).
 
 - Found after the T6 push (450740c): chain-day and chain-backfill rebuilt only chain_days, thesis and reconciliation before `verify`, so the next frozen day would fail `verify` on fee_trace (since T4), elasticity (T5) and token_board (T6). Fix: `npm run rebuild` (every derived file, in order) in both workflows. Checked by taking 4 Nov away and putting it back: the old steps give 3 files DIFF, the new ones ALL OK.
+- Same gap in `refresh.mjs`: the hand run 42056366366 (5 Nov) failed verify on fee_trace.json (it reads model_inputs, which refresh updates) and committed nothing; every scheduled refresh since T4 would have failed the same way. refresh now rebuilds every derived file in the rebuild order.
 
 ## Next
 
