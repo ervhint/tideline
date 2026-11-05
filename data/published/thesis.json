@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-05T11:11:28.278Z",
+ "asOf": "2026-11-05T15:38:16.275Z",
  "prereg": "PREREG.md",
  "snapshotLastDay": "2026-11-04",
  "readings": [
@@ -16,7 +16,7 @@
    "id": "Q2",
    "name": "NEAR's Share of Fees",
    "side": "Bullish",
-   "capture": 0.3343087951572057,
+   "capture": 0.3253000204765384,
    "detail": "33% last 30 days",
    "plain": "The part of Intents fees that DefiLlama books as revenue. Bullish above 30%; Bearish only if it was under 20% on each of the last 14 days.",
    "source": "DefiLlama, all Intents",
@@ -371,23 +371,23 @@
  },
  "vstar": {
   "todayUsd": 3997411428,
-  "priceUsd": 4.01,
+  "priceUsd": 3.77,
   "at16": {
-   "low": 12271649860.290512,
-   "mid": 13710377416.665749,
-   "high": 52093478478.16419
+   "low": 11534708576.492933,
+   "mid": 12907368815.46843,
+   "high": 48965143222.168625
   },
   "at25": {
-   "low": 19341216125.675983,
-   "mid": 21608779243.155636,
-   "high": 82103974400.76341
+   "low": 18181288441.365665,
+   "mid": 20344908923.955734,
+   "high": 77180050678.46321
   },
-  "multiple16": 3.4298139342452862,
-  "multiple25": 5.405693067217507
+  "multiple16": 3.228931784468904,
+  "multiple25": 5.089520878799002
  },
  "notes": {
   "llamaLastDay": "2026-11-04",
-  "llamaLastDayCapture": 0.19231233147477325
+  "llamaLastDayCapture": 0.18768214342688389
  },
  "labelCheck": {
   "rule": "Labels with confidence 'secondary' dropped; the readings use referral names, so sides and shares stay the same",
@@ -405,7 +405,7 @@
    "As of 5 Nov, the evidence does not reach either line (score +2 of 7; the lines are +3 and -3).",
    "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. Pointing Bearish: solvers keep a lot or a small group of them dominates (spread 53.7 bps, top 3 hold 77%). In between: one integrator brings much of the fees but stays under the 80% line (SwapKit 76% of visible app fees). The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power (0 usable fee changes, 3 needed).",
-   "Monthly volume would need to reach about 3.4x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.4x if issuance stays at 2.5%, with all revenue spent on buybacks."
+   "Monthly volume would need to reach about 3.2x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.1x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]
  }
 }
