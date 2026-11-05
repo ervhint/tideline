@@ -114,4 +114,13 @@ For a set of swap groups (one size bucket over the last 7 days, all kinds unless
 
 ## Amendments
 
-None yet.
+### A1. Q4 on chain days (5 Nov 2026, T6)
+
+Written before any fee share per referral was computed from the frozen chain days. Section 6 says "largest referral's 30-day fee share" but not how to read it on chain; this fills that in and changes nothing above. Known when written: per-referral USD volume for 3 Nov from T1 (LI.FI, SwapKit, `1click-unknown` and Rango largest), and that transfer swaps carry no referral (PLAN §6a, run 5).
+
+- **Days**: the last 30 frozen days. A gap is not replaced by an older day; the reading says how many days it used.
+- **Swaps**: token_diff groups (`k: "d"`) only. Transfer swaps show no app fee and no referral, so they are not in Q4. The page says how much of the window's USD the token_diff swaps carry.
+- **Fee paid** per group: `vol × fee ÷ (10,000 − fee)`, the app fee on the gross input by section 7's rule, with `vol` (the priced side) so groups with one priced side count. Groups with `fee: null` are left out and counted with their USD. Groups with no priced side add nothing.
+- **Integrator**: each referral string on its own, as `data/labels/frontends.json` keys them. `1click-unknown` and the blank referral stay in the total but cannot be the largest, because neither is one frontend. Side figure, which does not set the reading: the same share with both left out of the total too.
+- **Q4 share** = the largest integrator's fee paid ÷ all fee paid over the window. Sides as in section 6.
+- **By size** (Concentration page): the same rule inside each size bucket. Does not set the reading.
