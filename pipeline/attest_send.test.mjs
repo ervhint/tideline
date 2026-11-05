@@ -41,6 +41,7 @@ test('a day counts as finished only after it ended and settled', () => {
 
 test('days recorded late carry the hash only', () => {
   assert.equal(readingsFor('2026-11-01'), '');
+  assert.equal(readingsFor('2026-11-02'), ''); // the backfill reached it on 5 Nov
 });
 
 test('later days carry the readings and when they were computed', () => {

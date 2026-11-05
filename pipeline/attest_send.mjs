@@ -13,8 +13,8 @@ const CONFIRM_TRIES = 10;
 const CONFIRM_WAIT_MS = 3_000;
 
 // Days before this one were recorded late, so they carry the hash only: readings worked out
-// now would look as if they had been known back then.
-export const FIRST_DAY_WITH_READINGS = '2026-11-02';
+// now would look as if they had been known back then. 2026-11-03 is the first day anchored on the day after it (T2).
+export const FIRST_DAY_WITH_READINGS = '2026-11-03';
 // A sampler run started just before midnight commits to that day's file a few minutes after it.
 export const SETTLE_HOURS = 2;
 
