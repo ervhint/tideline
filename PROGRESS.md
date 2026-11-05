@@ -38,6 +38,20 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - Tests: `npm test` 157/157, `tsc --noEmit` clean, `verify` ALL OK (132 values). gitleaks flags only the gitignored `.next` dev cache.
 - Uncertain: swaps are token_diff entries with a referral plus transfer swaps, as measured in T1. Direct token_diff swaps with no referral, if any, are not counted. A filler found on day D is read from D on; earlier days keep the list they were frozen with (each file names it).
 
+## T3 backfill: built, trial running (4 Nov 2026)
+
+- `pipeline/backfill_plan.mjs` (+ test) cuts a run of days into jobs of 3 days (a day takes about 95 min, a job may run 6 h). `chain-backfill.yml`: by hand, inputs from, to, commit (default off); at most 6 jobs at once; a last job copies every frozen day in (never replaces one), rebuilds the derived files, runs `npm run verify`, commits once if `commit` is on. Every day uses the committed filler list as it is (no discovery), so a solver that left earlier can be missed on old days. A day that can't be read stays a gap. Plan for the full run: 30 days, 4 Oct to 2 Nov = 10 jobs (human chose 30 days, 6 at a time).
+- Built on branch `test` (commits c2d8279, c449b66; `test` was force-pushed over the old spike history with the human's yes). GitHub starts a hand-run workflow only from `main`, so the trial ran through a temporary push trigger on `test`; that trigger is removed (5 Nov) and the workflow goes to `main` for the full run.
+- Trial passed (run 41868179837, 4 to 6 Oct, nothing committed, files only in the run artifact): all census transactions read, no gaps. 4 Oct 18,165 swaps $18.6M; 5 Oct 22,832 $37.3M; 6 Oct 22,668 $32.2M; each day 31 to 57 min of reading (43, 83, 124 429s), whole job 2h10m. FastNEAR and DefiLlama reach back at least to 4 Oct.
+- Finding for T4/T5/T6: in early October 99.4% to 99.8% of swaps are token_diff (about 18k to 23k a day) and transfer swaps only 48 to 108 a day; on 3 Nov token_diff is 37% of swaps and the hub carries 63%. Totals per day stay about the same, so flow likely moved from token_diff to the hub somewhere between 6 Oct and 3 Nov. Not confirmed; the 30 days show when. Frontend readings use token_diff only, so they cover far less of the flow after the shift.
+- Mistake to remember: the force-push to `test` also started a `spike` run (the push counted the spike files as changed). Cancelled.
+
+## Open before T4 (as of 5 Nov 2026)
+
+- **T2 is still open.** It closes when the first scheduled chain-day run freezes 2026-11-04 with no hand, and attest-days anchors it. As of 04:05 UTC on 5 Nov (11:05 WIB) the 03:17 UTC run had not started (only `refresh` schedules had). Check at 13:00 WIB: `gh run list --workflow chain-day.yml`. If it never ran, find out why (schedule skipped? workflow disabled?) and say so in plain words; run it by hand if needed. The attest-days slots are 05:41, 08:41 and 12:41 UTC (12:41, 15:41, 19:41 WIB); run `attest-days` by hand with dry_run off if the day is frozen but not anchored. When it works, write "T2 closed" with the date in the T2 section.
+- **T3 is not finished.** Trial passed (above). Then the full 30 days, 4 Oct to 2 Nov, from main with `commit` on, 10 jobs, 6 at a time; read: gaps, counts, `verify`, the day the token_diff to hub shift happened. T3 is done when the 30 days are frozen and committed and PROGRESS says so.
+- **T4 starts only after both** (new chat). It reads the PLAN T4 row, `data/chain/*.jsonl` and `data/published/chain_days.json`.
+
 ## Next
 
 T2 is closed once the first scheduled chain-day run (5 Nov, about 03:17 UTC, 10:17 WIB) freezes 2026-11-04 and attest-days anchors it with no hand. Telegram is done (4 Nov): Tideline-only bot `@tideline_thesis_bot`, token and chat id in `.env` (ignored by git) and as repo secrets, test message received; the Actions path (failed-day message) is not exercised yet. Schedules are on (2af49b9): chain-day 03:17 UTC, attest-days 05:41, 08:41, 12:41, refresh hourly at :23. Then T3: backfill 30 to 60 days, in lanes of a few days per job; the human decides the number of days and lanes. Still open from PLAN §7: a paid FastNEAR key, recommended no.
