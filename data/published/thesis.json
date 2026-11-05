@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-05T02:35:10.279Z",
+ "asOf": "2026-11-05T11:11:28.278Z",
  "prereg": null,
  "snapshotLastDay": "2026-11-04",
  "readings": [
@@ -16,8 +16,8 @@
    "id": "Q2",
    "name": "NEAR's Share of Fees",
    "side": "Bullish",
-   "capture": 0.33776388859790396,
-   "detail": "34% last 30 days",
+   "capture": 0.3343087951572057,
+   "detail": "33% last 30 days",
    "plain": "The part of Intents fees that DefiLlama books as revenue. Bullish above 30%; Bearish only if it was under 20% on each of the last 14 days.",
    "source": "DefiLlama, all Intents",
    "query": "analysis/readings.mjs q2 → data/snapshot/defillama_daily.json"
@@ -58,24 +58,24 @@
  "concentration": null,
  "solvers": null,
  "vstar": {
-  "todayUsd": 3970607022,
-  "priceUsd": 4.03,
+  "todayUsd": 3997411428,
+  "priceUsd": 4.01,
   "at16": {
-   "low": 12331273069.439987,
-   "mid": 13658727492.218327,
-   "high": 52346580579.18467
+   "low": 12271649860.290512,
+   "mid": 13710377416.665749,
+   "high": 52093478478.16419
   },
   "at25": {
-   "low": 19435960117.649525,
-   "mid": 21528229997.15265,
-   "high": 82506165154.49245
+   "low": 19341216125.675983,
+   "mid": 21608779243.155636,
+   "high": 82103974400.76341
   },
-  "multiple16": 3.439959536801103,
-  "multiple25": 5.421898938341386
+  "multiple16": 3.4298139342452862,
+  "multiple25": 5.405693067217507
  },
  "notes": {
-  "llamaLastDay": "2026-11-03",
-  "llamaLastDayCapture": 4.82111814572379
+  "llamaLastDay": "2026-11-04",
+  "llamaLastDayCapture": 0.19231233147477325
  },
  "labelCheck": {
   "rule": "Labels with confidence 'secondary' dropped; the readings use referral names, so sides and shares stay the same",
@@ -91,7 +91,7 @@
   ],
   "live": [
    "As of 5 Nov, too little is measured to lean either way.",
-   "Pointing Bullish: NEAR's share of fees is 34% over the last 30 days and revenue has risen over each of the last three months. The DefiLlama figures come from a dataset nobody can re-run for free.",
+   "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power, Solver Competition and Largest Integrator.",
    "Monthly volume would need to reach about 3.4x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.4x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]

@@ -10,11 +10,11 @@
      "date": "Undated draft, checked 30 Oct 2026"
     }
    ],
-   "why": "NEAR is $4.03 now, not $4.97, and every dollar threshold moves with price."
+   "why": "NEAR is $4.01 now, not $4.97, and every dollar threshold moves with price."
   },
   {
    "figure": "Daily Threshold",
-   "ours": "$449M a day",
+   "ours": "$450M a day",
    "others": [
     {
      "name": "TronWeekly, citing a DefiLlama Pro page",
