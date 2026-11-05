@@ -1,5 +1,5 @@
 // The refresh job (U8, FR-16): pulls DefiLlama and model inputs, rebuilds every published file, and records side changes.
-// Freezing the day's chain sample comes back in T2.
+// Freezing a chain day is chain-day.yml's job (T2). Token names for the coverage board come from ft_metadata here (T6).
 // A file whose numbers did not change (only its timestamp did) is put back byte for byte, so git sees no change and no commit is made.
 // Usage: node pipeline/refresh.mjs [--dry-run] [--message-file <path>]
 //   --dry-run        runs everything, prints what would change, then restores all files (nothing is written)
@@ -17,7 +17,8 @@ const LLAMA = 'data/snapshot/defillama_daily.json';
 const COW = 'data/snapshot/cow_daily.json';
 const P = 'data/published';
 const VENUES = 'data/snapshot/control_venues.json';
-const FILES = [LLAMA, COW, VENUES, `${P}/model_inputs.json`, `${P}/thesis.json`, `${P}/reconciliation.json`, HISTORY];
+const TOKENS = 'data/labels/tokens.json';
+const FILES = [LLAMA, COW, VENUES, TOKENS, `${P}/model_inputs.json`, `${P}/thesis.json`, `${P}/reconciliation.json`, `${P}/token_board.json`, HISTORY];
 
 const read = (f) => (existsSync(f) ? readFileSync(f, 'utf8') : null);
 const backup = new Map(FILES.map((f) => [f, read(f)]));
@@ -43,17 +44,19 @@ function settle(f) {
 try {
   // Inputs first: the derived files read the settled copies, so verify can rebuild them.
   // A flaky outside source must not stop the run: keep the previous copy, say so, and try again next hour.
-  for (const s of ['pipeline/pull_defillama.mjs', 'pipeline/model_inputs.mjs']) {
+  for (const s of ['pipeline/pull_defillama.mjs', 'pipeline/model_inputs.mjs', 'pipeline/token_names.mjs']) {
     try { node(s); } catch (e) { console.log(`WARNING: ${s} failed, the previous copy is kept.\n${String(e.message).split('\n').filter((l) => /^Error: http|: \d{3}$|ECONN|TIMEOUT|terminated/.test(l)).join('\n')}`); }
   }
   settle(LLAMA);
   settle(COW);
   settle(VENUES);
   settle(`${P}/model_inputs.json`);
+  if (existsSync(TOKENS)) settle(TOKENS);
 
   node('pipeline/build_thesis.mjs');
   node('pipeline/build_reconciliation.mjs');
-  for (const f of ['thesis', 'reconciliation']) settle(`${P}/${f}.json`);
+  node('pipeline/build_token_board.mjs');
+  for (const f of ['thesis', 'reconciliation', 'token_board']) settle(`${P}/${f}.json`);
 
   const before = backup.get(`${P}/thesis.json`) && JSON.parse(backup.get(`${P}/thesis.json`));
   const after = JSON.parse(readFileSync(`${P}/thesis.json`, 'utf8'));

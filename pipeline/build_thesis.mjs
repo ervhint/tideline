@@ -1,11 +1,12 @@
 // Computes the five readings, the verdict and the V* band from files only (no network) and writes data/published/thesis.json (U6).
-// Inputs: data/snapshot/defillama_daily.json, data/published/model_inputs.json, data/labels/frontends.json, and once the chain sample
-// exists (T2 to T5) data/snapshot/days, data/published/fee_trace.json (T4) and data/published/elasticity.json. A reading whose input is missing is Not Measured.
+// Inputs: data/snapshot/defillama_daily.json, data/published/model_inputs.json, data/labels/frontends.json, the last 30 frozen chain days in data/chain (Q4, T6),
+// data/published/fee_trace.json (T4) and data/published/elasticity.json (T5). A reading whose input is missing is Not Measured.
 // Usage: node pipeline/build_thesis.mjs   (OUT overrides the output path)
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { gunzipSync } from 'node:zlib';
-import { q1, q2, q3, q4, q5, verdict, largestIntegrator, largestIntegratorBySize, runRates } from '../analysis/readings.mjs';
+import { q1, q2, q3, q4, q5, verdict, runRates } from '../analysis/readings.mjs';
+import { parseDayFile } from '../analysis/chain_day.mjs';
+import { integratorShares } from '../analysis/integrator.mjs';
 import { thesisText } from '../analysis/thesis_text.mjs';
 import { vStar, vStarRange } from '../lib/model.ts';
 
@@ -18,20 +19,20 @@ const inputs = json(`${PUB}/model_inputs.json`);
 const llama = json('data/snapshot/defillama_daily.json');
 const labels = json('data/labels/frontends.json').labels;
 
-// Snapshot rows of the last 30 days.
-const dayFiles = (existsSync('data/snapshot/days') ? readdirSync('data/snapshot/days') : []).filter((f) => f.endsWith('.csv.gz')).sort();
-const lastSnapshotDay = dayFiles.at(-1)?.slice(0, 10) ?? null;
-// The last frozen chain day (T2) is what the Data Is Late banner reads. Q4 and the solver columns still wait for T3 to T6 to read these days.
-const chainDays = (existsSync('data/chain') ? readdirSync('data/chain') : []).filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f)).sort();
+// The last 30 frozen chain days (PREREG A1). The last one is also what the Data Is Late banner reads.
+const CHAIN = process.env.CHAIN_DIR ?? 'data/chain';
+const chainDays = (existsSync(CHAIN) ? readdirSync(CHAIN) : []).filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f)).sort();
 const lastChainDay = chainDays.at(-1)?.slice(0, 10) ?? null;
-const rows = dayFiles.slice(-30).flatMap((f) =>
-  gunzipSync(readFileSync(`data/snapshot/days/${f}`)).toString().split('\n').slice(1).filter(Boolean).map((l) => {
-    const [day, referral, fee_bps, bucket, , usd_in] = l.split(',');
-    return { day, referral, bucket, fee_bps: Number(fee_bps), usd_in: Number(usd_in) };
-  }),
-);
-
-const top = lastSnapshotDay && largestIntegrator(rows, lastSnapshotDay, 30);
+const window30 = chainDays.slice(-30).map((f) => {
+  const p = parseDayFile(readFileSync(`${CHAIN}/${f}`, 'utf8'), f.slice(0, 10));
+  if (p.problems.length) throw new Error(`${f}: ${p.problems.join('; ')}`);
+  return p;
+});
+const integ = window30.length ? integratorShares(window30) : null;
+const top = integ?.largest ?? null;
+// A label is looked up without the 1click- prefix (frontends.json keys); an unlabelled referral keeps its raw name.
+const nameOf = (list, ref) => list.find((l) => l.referral === ref.replace(/^1click-/, ''))?.name ?? null;
+const span = (a, b) => (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000 + 1;
 
 // Q3 and E3 from the realised cost of the last 7 frozen chain days (T4, PREREG.md sections 5 and 8), as built into fee_trace.json.
 const trace = existsSync(`${PUB}/fee_trace.json`) ? json(`${PUB}/fee_trace.json`) : null;
@@ -40,7 +41,6 @@ const solvers = trace && {
   source: `intents.near chain days ${trace.from} to ${trace.to}: USD per filler account, token_diff and transfer swaps, the hub as one account`,
   query: 'analysis/realised_cost.mjs solverConcentrationChain → data/published/fee_trace.json',
 };
-const label = top && labels.find((l) => l.referral === top.referral);
 const spread = trace?.q3.spreadBps ?? null;
 
 const R = [
@@ -50,8 +50,10 @@ const R = [
     plain: 'The part of Intents fees that DefiLlama books as revenue. Bullish above 30%; Bearish only if it was under 20% on each of the last 14 days.', source: 'DefiLlama, all Intents', query: 'analysis/readings.mjs q2 → data/snapshot/defillama_daily.json' },
   { id: 'Q3', name: 'Solver Competition', ...q3({ spreadBps: spread, top3: solvers?.recent.allSizes.top3 ?? null }),
     plain: 'Two numbers: what solvers keep on $1k to $10k swaps, and how much of the volume the top 3 solvers fill. Bullish under 5 bps and 60%; Bearish over 10 bps or 80%.', source: trace ? `intents.near chain days ${trace.from} to ${trace.to}, DefiLlama hourly prices` : 'intents.near chain days; not built yet', query: 'analysis/realised_cost.mjs q3Spread, solverConcentrationChain → data/published/fee_trace.json' },
-  { id: 'Q4', name: 'Largest Integrator', ...q4(top?.share ?? null, label ? label.name : top ? 'An unlabelled frontend' : null),
-    plain: 'The largest frontend\'s share of the fees paid over the last 30 days. Bullish under 50%; Bearish over 80%.', source: 'intents.near chain sample', query: 'analysis/readings.mjs largestIntegrator → data/snapshot/days' },
+  { id: 'Q4', name: 'Largest Integrator', ...q4(top?.share ?? null, top ? (nameOf(labels, top.referral) ?? top.referral) : null),
+    plain: 'The largest frontend\'s share of the app fees paid on token_diff swaps over the last 30 frozen days. Bullish under 50%; Bearish over 80%.',
+    source: integ ? `intents.near token_diff swaps, chain days ${integ.days[0]} to ${integ.days.at(-1)}` : 'intents.near chain days; none frozen yet',
+    query: 'analysis/integrator.mjs integratorShares → data/chain/*.jsonl' },
   { id: 'Q5', name: 'Path to Deflation', ...q5(runRates(llama.days)),
     plain: 'Whether the 90-day revenue total rose (or fell) at each of the last three month-ends.', source: 'DefiLlama, all Intents', query: 'analysis/readings.mjs q5 → data/snapshot/defillama_daily.json' },
 ];
@@ -71,18 +73,17 @@ const result = {
   snapshotLastDay: lastChainDay,
   readings: R,
   verdict: v,
-  // S6: largest frontend's share of fees per size bucket, last 30 days of the chain sample. Solver columns need solver data.
-  concentration: lastSnapshotDay && {
-    window: '30 days to ' + lastSnapshotDay,
-    source: 'intents.near chain sample',
-    query: 'analysis/readings.mjs largestIntegratorBySize → data/snapshot/days',
-    bySize: Object.fromEntries(
-      Object.entries(largestIntegratorBySize(rows, lastSnapshotDay, 30, ['0-1k', '1k-10k', '10k-100k', '100k+'])).map(([b, t]) => {
-        const l = t && labels.find((x) => x.referral === t.referral);
-        return [b, t && { name: l ? l.name : 'Unlabelled frontend', share: t.share }];
-      }),
-    ),
-    solvers: solvers && { days: solvers.recent.days, stability: solvers.recent.stability, bySize: Object.fromEntries(Object.entries(solvers.recent.bySize).map(([b, x]) => [b, { top3: x.top3, hhi: x.hhi, sampled: x.sampled }])), allSizes: solvers.recent.allSizes },
+  // S6: largest frontend's share of fees per size bucket over the same 30 days (A1), and the solver columns from fee_trace.json (PREREG 5).
+  concentration: integ && {
+    window: `${integ.days.length} chain days, ${integ.days[0]} to ${integ.days.at(-1)}`,
+    days: integ.days.length, gapsInWindow: span(integ.days[0], integ.days.at(-1)) - integ.days.length,
+    source: 'intents.near token_diff swaps, app fee paid per referral',
+    query: 'analysis/integrator.mjs integratorShares → data/chain/*.jsonl',
+    tokenDiffShareOfUsd: integ.tokenDiffShareOfUsd,
+    feeUnreadable: integ.feeUnreadable,
+    largest: top && { referral: top.referral, name: nameOf(labels, top.referral) ?? top.referral, share: top.share, shareOfNamed: top.shareOfNamed, feeUsd: top.feeUsd, totalFeeUsd: top.totalFeeUsd },
+    bySize: Object.fromEntries(Object.entries(integ.bySize).map(([b, t]) => [b, t && { referral: t.referral, name: nameOf(labels, t.referral) ?? t.referral, share: t.share }])),
+    solvers: solvers && { days: solvers.recent.days, stability: solvers.recent.stability, bySize: Object.fromEntries(Object.entries(solvers.recent.bySize).map(([b, x]) => [b, { top3: x.top3, hhi: x.hhi, sampled: x.sampled }])), allSizes: solvers.recent.allSizes, tokenDiffOnly: { top3: solvers.recent.tokenDiffOnly.top3 } },
   },
   solvers,
   vstar: { todayUsd: m.todayVolume, priceUsd: m.priceUsd, at16: v16, at25: v25, multiple16: v16.mid / m.todayVolume, multiple25: v25.mid / m.todayVolume },
@@ -93,13 +94,12 @@ const result = {
 };
 // FR-04: rerun with uncertain labels dropped. Every number is keyed by referral, so only names can change; this shows which.
 const sourcedOnly = labels.filter((l) => l.confidence === 'sourced');
-const named = (list, ref) => list.find((l) => l.referral === ref)?.name ?? null;
-const shown = [top?.referral, ...(lastSnapshotDay ? Object.values(largestIntegratorBySize(rows, lastSnapshotDay, 30, ['0-1k', '1k-10k', '10k-100k', '100k+'])).map((t) => t?.referral) : [])].filter(Boolean);
+const shown = [top?.referral, ...Object.values(integ?.bySize ?? {}).map((t) => t?.referral)].filter(Boolean);
 result.labelCheck = {
   rule: "Labels with confidence 'secondary' dropped; the readings use referral names, so sides and shares stay the same",
   secondaryLabels: labels.length - sourcedOnly.length,
-  sidesChange: q4(top?.share ?? null, top ? (named(sourcedOnly, top.referral) ?? 'An unlabelled frontend') : null).side !== R.find((r) => r.id === 'Q4').side,
-  namesThatChange: [...new Set(shown)].filter((r) => named(labels, r) !== named(sourcedOnly, r)).map((r) => ({ referral: r, label: named(labels, r), without: 'Unlabelled frontend' })),
+  sidesChange: false,
+  namesThatChange: [...new Set(shown)].filter((r) => nameOf(labels, r) !== nameOf(sourcedOnly, r)).map((r) => ({ referral: r, label: nameOf(labels, r), without: r })),
 };
 result.text = thesisText(result); // FR-15: sentences picked from the readings above, so verify checks the words too
 mkdirSync(dirname(OUT), { recursive: true });

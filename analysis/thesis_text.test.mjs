@@ -19,7 +19,8 @@ test('today: Bullish, only just, with both resting readings, the unknown one, an
   assert.match(t, /^As of 1 Nov, the evidence leans Bullish, but only just\./);
   assert.match(t, /35% over the last 30 days and revenue has risen/);
   assert.match(t, /DefiLlama figures come from a dataset nobody can re-run/);
-  assert.match(t, /Not measured yet: Solver Competition\./);
+  assert.match(t, /Not measured yet: Solver Competition \(solver Competition detail\)\./);
+  assert.match(t, /In between: one integrator brings much of the fees but stays under the 80% line \(Largest Integrator detail\)\./);
   assert.match(t, /Pricing Power is not settled/);
   assert.match(t, /about 3\.5x today's level under the 1\.6% issuance plan, which passed its vote but is not in force yet, or 5\.6x/);
 });
@@ -46,7 +47,7 @@ test('Undecided with no line passed says so and shows the score', () => {
 test('three or more Not Measured is "too little is measured"', () => {
   const t = text(['Not Measured', 'Not Measured', 'Not Measured', 'Neutral', 'Bullish']);
   assert.match(t, /too little is measured to lean either way/);
-  assert.match(t, /Not measured yet: Pricing Power, NEAR's Share of Fees and Solver Competition\./);
+  assert.match(t, /Not measured yet: Pricing Power \(pricing Power detail\), NEAR's Share of Fees \(35% last 30 days\) and Solver Competition \(solver Competition detail\)\./);
 });
 
 test('no reading on either side gives a plain sentence and no DefiLlama note', () => {

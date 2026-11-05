@@ -16,7 +16,8 @@ export default async function Concentration() {
             widths={[200, 190, 190, 150]}
             rows={c.rows}
           />
-          <p className="s-text">Largest Integrator is its share of fees paid, {c.window ?? "window not available"}, 1Click only. {c.solverDays ? `Solver columns: a seeded sample of swaps in each size on ${c.solverDays.length} days (${c.solverDays[0]} to ${c.solverDays.at(-1)}), the solver read from each swap's NEAR transaction.` : 'The solver columns appear once solver data is read from the sampled days.'} HHI is the sum of squared shares: 10,000 means one solver has everything.</p>
+          <p className="s-text">Largest Integrator is its share of the app fees paid on token_diff swaps, {c.window ?? "window not available"}. {c.solverDays ? `Solver columns: every swap of the last ${c.solverDays.length} frozen days (${c.solverDays[0]} to ${c.solverDays.at(-1)}), USD per filler account read from each swap's NEAR transaction.` : 'The solver columns appear once solver data is read from the frozen days.'} HHI is the sum of squared shares: 10,000 means one solver has everything.</p>
+          {c.integratorNote && <p className="s-text">{c.integratorNote}</p>}
           {c.solverNote && <p className="s-text">{c.solverNote}</p>}
           <a className="s-query" href="/reproduce/">Open the Query</a>
         </div>

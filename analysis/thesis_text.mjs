@@ -10,15 +10,16 @@ export const FIXED = [
   'A Bullish reading means the evidence passed a line set in advance, not that the price will rise.',
 ];
 
-// What each reading says on each side. { id: [Bullish, Bearish, needsDefiLlama] }
+// What each reading says on each side. { id: [Bullish, Bearish, needsDefiLlama, Neutral] }. A Neutral phrase is said only where the reading has its own numbers.
 const PHRASE = {
   Q1: (r) => [`raising a fee seems to raise revenue (${r.detail})`, `raising a fee seems to lower revenue (${r.detail})`, false],
   Q2: (r) => [`NEAR's share of fees is ${r.detail.replace(' last 30 days', '')} over the last 30 days`, `NEAR's share of fees has stayed under 20% for two weeks`, true],
-  Q3: () => ['solvers keep little and no small group of them dominates', 'solvers keep a lot or a small group of them dominates', false],
-  Q4: (r) => [`no single integrator dominates (${r.detail})`, `one integrator brings most of the fees (${r.detail})`, false],
+  Q3: (r) => [`solvers keep little and no small group of them dominates (${lower(r.detail)})`, `solvers keep a lot or a small group of them dominates (${lower(r.detail)})`, false, `solvers sit between the lines (${lower(r.detail)})`],
+  Q4: (r) => [`no single integrator dominates (${r.detail})`, `one integrator brings most of the fees (${r.detail})`, false, `one integrator brings much of the fees but stays under the 80% line (${r.detail})`],
   Q5: () => ['revenue has risen over each of the last three months', 'revenue has fallen over each of the last three months', true],
 };
 
+const lower = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 const list = (xs) => (xs.length < 3 ? xs.join(' and ') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
 
 export function thesisText(doc) {
@@ -41,12 +42,14 @@ export function thesisText(doc) {
     const parts = [];
     if (up.length) parts.push(`${up.length === 1 && !down.length ? 'One reading points' : 'Pointing'} Bullish: ${list(up.map((x) => x.text))}.`);
     if (down.length) parts.push(`${down.length === 1 && !up.length ? 'One reading points' : 'Pointing'} Bearish: ${list(down.map((x) => x.text))}.`);
+    const between = readings.filter((r) => r.side === 'Neutral' && PHRASE[r.id](r)[3]).map((r) => PHRASE[r.id](r)[3]);
+    if (between.length) parts.push(`In between: ${list(between)}.`);
     if (used.some((x) => x.llama)) parts.push('The DefiLlama figures come from a dataset nobody can re-run for free.');
     live.push(parts.join(' '));
   }
 
   // 3. What is still unknown.
-  const missing = readings.filter((r) => r.side === 'Not Measured').map((r) => r.name);
+  const missing = readings.filter((r) => r.side === 'Not Measured').map((r) => `${r.name} (${lower(r.detail)})`);
   const unknown = [];
   if (missing.length) unknown.push(`Not measured yet: ${list(missing)}.`);
   if (readings.find((r) => r.id === 'Q1')?.side === 'Neutral') unknown.push('Pricing Power is not settled: the data cannot yet say whether raising a fee helps or hurts revenue.');

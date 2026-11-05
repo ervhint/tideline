@@ -12,17 +12,19 @@ export const revalidate = 300; // re-read the published data every 5 minutes
 export default async function FollowTheFee() {
   const { fee } = await getNumbers();
   const bar = fee.parts.filter((p) => p.share);
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const lastGood = fee.asOf ? `${Number(fee.asOf.slice(8, 10))} ${MONTHS[Number(fee.asOf.slice(5, 7)) - 1]} ${fee.asOf.slice(0, 4)}` : null;
   return (
     <Page title="What a $10,000 Swap Costs" lead={<ErrorSwap normal={fee.lead} error="No figures are shown, because the data did not load." />}>
       <ErrorSwap
         error={
           <div className="err-body">
-            <Banner tone="error" title="Quotes Did Not Load">
-              The quote archive for 30 Oct 2026 did not load. Nothing is shown rather than a guess. The last good sample is from 30 Oct 2026, 17:07 UTC.
+            <Banner tone="error" title="Swaps Did Not Load">
+              {`The file of realised swaps did not load. Nothing is shown rather than a guess.${lastGood ? ` The last good figures cover the chain days to ${lastGood}.` : ''}`}
             </Banner>
             <div className="err-actions">
               <RetryButton>Try Again</RetryButton>
-              <RetryButton>Show Last Good Sample (30 Oct, 17:07 UTC)</RetryButton>
+              {lastGood && <RetryButton>{`Show Last Good Figures (to ${lastGood})`}</RetryButton>}
             </div>
           </div>
         }

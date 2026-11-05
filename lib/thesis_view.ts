@@ -47,13 +47,19 @@ export function thesisView<S extends { asOf: string; today: number; multiple: st
 
 // S6: the four size rows and the whole-window figure. Solver columns come from the E3 sampled days; "Not Measured" when there are none.
 type SolverCell = { top3: number | null; hhi: number | null; sampled: number };
-export type ConcentrationDoc = { window: string; source: string; bySize: Record<string, { name: string; share: number } | null>; solvers?: { days: string[]; bySize: Record<string, SolverCell>; allSizes?: { top3: number | null }; stability?: { perDayTop3: { top3: number }[]; leaveOneDayOut: { min: number; max: number } } | false } | null };
+export type ConcentrationDoc = { window: string; source: string; bySize: Record<string, { name: string; share: number } | null>;
+  tokenDiffShareOfUsd?: number | null; feeUnreadable?: { usd: number }; largest?: { name: string; share: number; shareOfNamed: number } | null;
+  solvers?: { days: string[]; bySize: Record<string, SolverCell>; allSizes?: { top3: number | null }; tokenDiffOnly?: { top3: number | null }; stability?: { perDayTop3: { top3: number }[]; leaveOneDayOut: { min: number; max: number } } | false } | null };
 const SIZE_ROWS: [string, string][] = [['0-1k', '$0 to $1k'], ['1k-10k', '$1k to $10k'], ['10k-100k', '$10k to $100k'], ['100k+', '$100k and Up']];
 const pct = (x: number) => `${Math.round(x * 100)}%`;
+const money = (v: number) => (v >= 1e6 ? `$${(v / 1e6).toFixed(0)}M` : `$${Math.round(v / 1e3)}k`);
+// Where a top-3 range sits against Solver Competition's 60% and 80% lines.
+const side = (lo: number, hi: number) =>
+  hi < 0.6 ? 'all under the 60% line Solver Competition uses' : lo > 0.8 ? 'all over its 80% line' : lo >= 0.6 && hi <= 0.8 ? 'all between the 60% and 80% lines Solver Competition uses' : 'across a line Solver Competition uses';
 
 export function concentrationView(doc: { concentration?: ConcentrationDoc } | null, headlineShare: string | null) {
   const c = doc?.concentration;
-  if (!c) return { live: false as const, rows: SIZE_ROWS.map(([, label]) => [label, 'Not Measured', 'Not Measured', 'Not Measured']), solverDays: null as string[] | null, solverNote: null as string | null, window: null, ours: null };
+  if (!c) return { live: false as const, rows: SIZE_ROWS.map(([, label]) => [label, 'Not Measured', 'Not Measured', 'Not Measured']), solverDays: null as string[] | null, solverNote: null as string | null, integratorNote: null as string | null, window: null, ours: null };
   return {
     live: true as const,
     rows: SIZE_ROWS.map(([key, label]) => {
@@ -63,7 +69,10 @@ export function concentrationView(doc: { concentration?: ConcentrationDoc } | nu
     }),
     solverDays: c.solvers ? c.solvers.days : null,
     solverNote: c.solvers?.stability && c.solvers.allSizes?.top3 != null
-      ? `All sizes together, the top 3 solvers fill ${pct(c.solvers.allSizes.top3)} over these days. Single days range from ${pct(Math.min(...c.solvers.stability.perDayTop3.map((d) => d.top3)))} to ${pct(Math.max(...c.solvers.stability.perDayTop3.map((d) => d.top3)))}, and leaving out any one day gives ${pct(c.solvers.stability.leaveOneDayOut.min)} to ${pct(c.solvers.stability.leaveOneDayOut.max)}, so this sits on the 60% line Solver Competition uses. The largest, 51e8f94d…, fills by direct transfers and sometimes passes part of a trade on to other solvers; it counts here as one solver.`
+      ? `All sizes together, the top 3 solvers fill ${pct(c.solvers.allSizes.top3)} over these days. Single days range from ${pct(Math.min(...c.solvers.stability.perDayTop3.map((d) => d.top3)))} to ${pct(Math.max(...c.solvers.stability.perDayTop3.map((d) => d.top3)))}, and leaving out any one day gives ${pct(c.solvers.stability.leaveOneDayOut.min)} to ${pct(c.solvers.stability.leaveOneDayOut.max)}, ${side(c.solvers.stability.leaveOneDayOut.min, c.solvers.stability.leaveOneDayOut.max)}. The largest, the hub 51e8f94d…, fills by direct transfers; the chain does not show whether it passes trades on to other solvers, so it counts as one.${c.solvers.tokenDiffOnly?.top3 != null ? ` Counting token_diff swaps only, the top 3 fill ${pct(c.solvers.tokenDiffOnly.top3)}.` : ''}`
+      : null,
+    integratorNote: c.largest && c.tokenDiffShareOfUsd != null
+      ? `Only token_diff swaps carry a frontend and a visible app fee; they are ${pct(c.tokenDiffShareOfUsd)} of the USD over these days, less since flow moved to the hub on 28 to 30 Oct. ${c.largest.name} pays ${pct(c.largest.share)} of the app fees seen; with unnamed and blank referrals left out it is ${pct(c.largest.shareOfNamed)}. Swaps whose fee is paid in a token the swap did not give (${money(c.feeUnreadable?.usd ?? 0)}) are left out.`
       : null,
     window: c.window,
     ours: headlineShare,

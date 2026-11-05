@@ -106,7 +106,7 @@ export function dayFile({ day, fillers, settlementTxs = null, listed, read, hash
   return lines.map((l) => JSON.stringify(l)).join('\n') + '\n';
 }
 
-// Reads a day file back and checks it holds together. Returns { head, swaps, routes, problems }. No network.
+// Reads a day file back and checks it holds together. Returns { head, swaps, routes, decimals, priceIds, problems }. No network.
 export function parseDayFile(text, expectedDay = null) {
   const problems = [];
   let lines;
@@ -125,7 +125,9 @@ export function parseDayFile(text, expectedDay = null) {
   if (swaps.some((r) => r.np > r.n)) problems.push('a row prices more swaps than it holds');
   if (routes.reduce((t, r) => t + r.n, 0) !== (head.swaps?.diff ?? 0) + (head.swaps?.transfer ?? 0)) problems.push('route rows do not add up to the swap count');
   if (head.census && head.census.readShare < MIN_READ_SHARE) problems.push(`only ${head.census.readShare} of the listed transactions were read`);
-  return { head, swaps, routes, problems };
+  const decimals = Object.fromEntries(lines.filter((l) => l.t === 'dec').map((l) => [l.token, l.d]));
+  const priceIds = new Set(lines.filter((l) => l.t === 'price').map((l) => l.id));
+  return { head, swaps, routes, decimals, priceIds, problems };
 }
 
 // Per-day summary for data/published/chain_days.json. days: [{ head, swaps, routes }] oldest first.

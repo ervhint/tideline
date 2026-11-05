@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { q1, q2, q3, q4, q5, verdict, concentration, largestIntegrator, largestIntegratorBySize, runRates } from './readings.mjs';
+import { q1, q2, q3, q4, q5, verdict, concentration, runRates } from './readings.mjs';
 
 const B = 'Bullish', N = 'Neutral', R = 'Bearish', M = 'Not Measured';
 
@@ -89,20 +89,6 @@ test('T-6.2 HHI and top-3 match the hand-worked fixture', () => {
   assert.deepEqual(concentration([0, 0]), { hhi: null, top3: null });
 });
 
-test('T-6.2 largest integrator: fee = usd in x fee rate, blank referral never counts as an integrator, share is of all fees', () => {
-  const rows = [
-    // referral, fee_bps, usd_in
-    { day: '2026-10-01', referral: 'a', fee_bps: 100, usd_in: 1000 }, // fee 10
-    { day: '2026-10-02', referral: 'b', fee_bps: 50, usd_in: 1000 }, // fee 5
-    { day: '2026-10-02', referral: '', fee_bps: 100, usd_in: 5000 }, // fee 50, blank
-    { day: '2026-08-01', referral: 'b', fee_bps: 100, usd_in: 99999 }, // outside the window
-  ];
-  const r = largestIntegrator(rows, '2026-10-02', 30);
-  assert.equal(r.referral, 'a');
-  assert.ok(Math.abs(r.share - 10 / 65) < 1e-12);
-  assert.equal(largestIntegrator([], '2026-10-02', 30), null);
-});
-
 test('T-6.2 run rates: trailing 90-day revenue at the last day and 30, 60, 90 days earlier', () => {
   const series = Array.from({ length: 180 }, (_, i) => ({ day: i, revenue: i < 90 ? 1 : i < 120 ? 2 : 3 }));
   const r = runRates(series);
@@ -113,15 +99,4 @@ test('T-6.2 run rates: trailing 90-day revenue at the last day and 30, 60, 90 da
   assert.equal(runRates(series.slice(0, 100)), null);
 });
 
-test('largestIntegratorBySize splits by bucket and gives null for an empty one', () => {
-  const rows = [
-    { day: '2026-10-02', referral: 'a', bucket: '0-1k', fee_bps: 100, usd_in: 1000 },
-    { day: '2026-10-02', referral: 'b', bucket: '0-1k', fee_bps: 100, usd_in: 3000 },
-    { day: '2026-10-02', referral: 'a', bucket: '1k-10k', fee_bps: 100, usd_in: 1000 },
-  ];
-  const r = largestIntegratorBySize(rows, '2026-10-02', 30, ['0-1k', '1k-10k', '100k+']);
-  assert.equal(r['0-1k'].referral, 'b');
-  assert.ok(Math.abs(r['0-1k'].share - 0.75) < 1e-12);
-  assert.equal(r['1k-10k'].referral, 'a');
-  assert.equal(r['100k+'], null);
-});
+

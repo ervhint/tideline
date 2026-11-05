@@ -35,7 +35,7 @@ export function q3({ spreadBps, top3 }) {
 export function q4(share, name) {
   if (share == null) return { side: M, detail: 'Not available' };
   const side = share < 0.5 ? B : share > 0.8 ? R : N;
-  return { side, detail: `${name ? name + ' ' : ''}${pct(share)} of fees, 1Click only`.trim() };
+  return { side, detail: `${name ? name + ' ' : ''}${pct(share)} of visible app fees`.trim() };
 }
 
 // Q5: trailing 90-day revenue at four month-ends, oldest first.
@@ -63,29 +63,7 @@ export function concentration(values) {
   return { hhi: shares.reduce((s, x) => s + (x * 100) ** 2, 0), top3: shares.slice(0, 3).reduce((s, x) => s + x, 0) };
 }
 
-const addDays = (day, n) => new Date(Date.parse(`${day}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
-
-// Largest frontend's share of fees (usd in x fee rate) over the `days` days ending on `lastDay`. Blank referral is not an integrator,
-// but its fees stay in the total. rows: { day, referral, fee_bps, usd_in }.
-export function largestIntegrator(rows, lastDay, days) {
-  const from = addDays(lastDay, -(days - 1));
-  const by = new Map();
-  let total = 0;
-  for (const r of rows) {
-    if (r.day < from || r.day > lastDay) continue;
-    const fee = (r.usd_in * r.fee_bps) / 1e4;
-    total += fee;
-    if (r.referral) by.set(r.referral, (by.get(r.referral) ?? 0) + fee);
-  }
-  if (!(total > 0) || !by.size) return null;
-  const [referral, fee] = [...by].sort((a, b) => b[1] - a[1])[0];
-  return { referral, share: fee / total };
-}
-
-// The same share, once per size bucket (S6). rows also carry `bucket`; a bucket with no fees gives null.
-export function largestIntegratorBySize(rows, lastDay, days, buckets) {
-  return Object.fromEntries(buckets.map((b) => [b, largestIntegrator(rows.filter((r) => r.bucket === b), lastDay, days)]));
-}
+// Q4 largest integrator on chain days: analysis/integrator.mjs (PREREG.md amendment A1).
 
 // Trailing 90-day revenue at the last day and 30, 60 and 90 days earlier, oldest first. series: [{ day, revenue }] oldest first, one per day.
 export function runRates(series) {

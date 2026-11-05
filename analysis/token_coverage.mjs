@@ -1,47 +1,63 @@
-// FR-21 coverage board: how much 1Click volume runs on the routes our quote archive samples, and which big routes it misses.
-// Pure: route rows (data/snapshot/tokens) and token names (data/labels/tokens.json) in, the board out.
+// FR-21 coverage board on frozen chain days (T6): which routes carry the swaps, and how many of them Follow the Fee can cost.
+// A swap is in Follow the Fee only with a price on both sides (PREREG.md section 7). Pure: parsed day files and token names in, the board out.
+import { llamaId } from './chain_swaps.mjs';
 
-// The routes a quote sampler would ask for (none runs here, see AGENTS.md): BTC, ETH, SOL and NEAR on their own chains, into USDC on Ethereum.
-export const QUOTED_ROUTES = [
-  '1cs_v1:btc:native:coin', 'nep141:eth.omft.near', 'nep141:sol.omft.near', 'nep141:wrap.near',
-].map((from) => `${from}>nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near`);
+export const CHAIN_NAMES = {
+  eth: 'Ethereum', arb: 'Arbitrum', base: 'Base', op: 'Optimism', bsc: 'BNB Chain', pol: 'Polygon', avax: 'Avalanche', gnosis: 'Gnosis',
+  bera: 'Berachain', sol: 'Solana', btc: 'Bitcoin', tron: 'Tron', ton: 'TON', near: 'NEAR', zec: 'Zcash', xrp: 'XRP Ledger', doge: 'Dogecoin',
+  ltc: 'Litecoin', sui: 'Sui', aptos: 'Aptos', ada: 'Cardano', bch: 'Bitcoin Cash', stellar: 'Stellar', dash: 'Dash', plasma: 'Plasma', aleo: 'Aleo',
+};
+const HOT_CHAIN = { 1: 'eth', 10: 'op', 56: 'bsc', 137: 'pol', 1117: 'ton', 8453: 'base', 42161: 'arb', 43114: 'avax' };
 
-const QUOTED_SYMBOLS = new Set(['BTC', 'ETH', 'SOL', 'wNEAR']);
-
-// 'quoted': the exact route we sample. 'similar': the same tokens on other chains (e.g. ETH on Arbitrum into USDC on Base),
-// so the fee should be close but is not measured. 'not quoted': everything else.
-// Symbols are compared without a bracketed suffix: 1Click lists native bitcoin under its current id as "BTC(OMNI)"
-// (1cs_v1:btc:native:coin), the id executed BTC swaps use; the older nep141:btc.omft.near is listed as "BTC".
-const base = (s) => s?.replace(/\(.*\)$/, '');
-
-export function routeStatus(from, to, names) {
-  if (QUOTED_ROUTES.includes(`${from}>${to}`)) return 'quoted';
-  const a = base(names[from]?.symbol), b = base(names[to]?.symbol);
-  return QUOTED_SYMBOLS.has(a) && b === 'USDC' ? 'similar' : 'not quoted';
+// The chain a token lives on, read from its intents.near id alone.
+export function chainOf(id) {
+  const hot = id.match(/^nep245:v2_1\.omni\.hot\.tg:(\d+)_/);
+  if (hot) return HOT_CHAIN[hot[1]] ?? `chain ${hot[1]}`;
+  const omft = id.match(/^nep141:([a-z]+)(?:-[0-9a-zA-Z]+)?\.omft\.near$/);
+  if (omft) return omft[1];
+  if (/\.factory\.bridge\.near$/.test(id)) return 'eth';
+  return 'near';
 }
 
-const label = (id, names) => (names[id] ? `${names[id].symbol} (${names[id].chain})` : id || 'unknown');
+const short = (s) => (s.length > 18 ? `${s.slice(0, 8)}…${s.slice(-4)}` : s);
+// "USDT (Tron)" with a name from ft_metadata (data/labels/tokens.json); otherwise the shortened contract and the chain.
+export function tokenLabel(id, names = {}) {
+  const chain = CHAIN_NAMES[chainOf(id)] ?? chainOf(id);
+  const sym = names[id]?.symbol;
+  return `${sym ?? short(id.replace(/^nep\d+:/, '').replace(/\.omft\.near$/, '').replace(/^v2_1\.omni\.hot\.tg:\d+_/, ''))} (${chain})`;
+}
 
-// rows: [{ day, from, to, swaps, usd }]. Returns totals per status and the largest routes overall and among those not quoted.
-export function coverageBoard(rows, names, { top = 10 } = {}) {
-  const days = [...new Set(rows.map((r) => r.day))].sort();
+// A token is priced on a day when it maps to a DefiLlama id that the day file holds a price for (and, on nep141, decimals).
+export const tokenPriced = (day, id) => {
+  const l = llamaId(id);
+  return !!l && day.priceIds.has(l) && (id.startsWith('nep245:') || day.decimals[id] != null);
+};
+
+const STATUSES = ['both', 'one', 'none'];
+
+// days: parsed day files (routes, decimals, priceIds). Returns totals per status and the largest routes.
+export function coverageBoard(days, names = {}, { top = 10 } = {}) {
   const routes = new Map();
-  for (const r of rows) {
-    const k = `${r.from}>${r.to}`;
-    const x = routes.get(k) ?? routes.set(k, { from: r.from, to: r.to, swaps: 0, usd: 0 }).get(k);
-    x.swaps += r.swaps; x.usd += r.usd;
+  const by = Object.fromEntries(STATUSES.map((s) => [s, { swaps: 0, usd: 0 }]));
+  for (const d of days) {
+    for (const r of d.routes) {
+      const a = tokenPriced(d, r.from), b = tokenPriced(d, r.to);
+      const status = a && b ? 'both' : a || b ? 'one' : 'none';
+      by[status].swaps += r.n; by[status].usd += r.vol;
+      const k = `${r.from}>${r.to}`;
+      const x = routes.get(k) ?? routes.set(k, { from: r.from, to: r.to, swaps: 0, usd: 0, status }).get(k);
+      x.swaps += r.n; x.usd += r.vol; x.status = status; // the status on the latest day it was seen
+    }
   }
-  const all = [...routes.values()].map((x) => ({ ...x, route: `${label(x.from, names)} to ${label(x.to, names)}`, status: routeStatus(x.from, x.to, names) }));
-  const usd = all.reduce((s, x) => s + x.usd, 0), swaps = all.reduce((s, x) => s + x.swaps, 0);
-  const byStatus = Object.fromEntries(['quoted', 'similar', 'not quoted'].map((st) => {
-    const xs = all.filter((x) => x.status === st);
-    const u = xs.reduce((s, x) => s + x.usd, 0);
-    return [st, { routes: xs.length, swaps: xs.reduce((s, x) => s + x.swaps, 0), usd: u, share: usd ? u / usd : 0 }];
-  }));
-  const pick = (xs) => xs.sort((a, b) => b.usd - a.usd).slice(0, top).map(({ route, status, swaps: n, usd: u }) => ({ route, status, swaps: n, usd: u, share: usd ? u / usd : 0 }));
+  const swaps = STATUSES.reduce((t, s) => t + by[s].swaps, 0), usd = STATUSES.reduce((t, s) => t + by[s].usd, 0);
+  for (const s of STATUSES) Object.assign(by[s], { swapShare: swaps ? by[s].swaps / swaps : 0, usdShare: usd ? by[s].usd / usd : 0 });
+  const all = [...routes.values()].map((x) => ({ ...x, route: `${tokenLabel(x.from, names)} to ${tokenLabel(x.to, names)}` }));
+  const pick = (xs, key) => xs.sort((p, q) => q[key] - p[key] || (p.route < q.route ? -1 : 1)).slice(0, top)
+    .map(({ route, status, swaps: n, usd: u }) => ({ route, status, swaps: n, usd: u, share: usd ? u / usd : 0, swapShare: swaps ? n / swaps : 0 }));
   return {
-    from: days[0] ?? null, to: days.at(-1) ?? null, days: days.length, routes: all.length, swaps, usd, byStatus,
-    largest: pick([...all]),
-    largestNotQuoted: pick(all.filter((x) => x.status === 'not quoted')),
+    from: days[0]?.head.day ?? null, to: days.at(-1)?.head.day ?? null, days: days.length, routes: all.length, swaps, usd, byStatus: by,
+    largest: pick([...all], 'usd'),
+    largestOneSide: pick(all.filter((x) => x.status === 'one'), 'usd'),
+    largestUnpriced: pick(all.filter((x) => x.status === 'none'), 'swaps'),
   };
 }

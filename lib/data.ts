@@ -15,6 +15,7 @@ import { FALLBACK, type Market } from './model';
 import { reconcileRows, type Row } from './reconcile_view';
 import { freshness } from './status_view';
 import { tokenBoardView, type TokenBoard } from './token_board_view';
+import { chainChecksView, type ChainDays } from './chain_checks_view';
 import { anchorStates, commands, elasticity, fee as sampleFee, readings, sample } from './mock';
 
 type FeeTrace = import('./fee_view').FeeTrace;
@@ -95,24 +96,12 @@ export async function getReconciliation() {
   return doc?.rows ?? reconcileRows({ vstar: null, buybackShare: null, fees: [], volume: [] });
 }
 
-// AC-2.3: the chain spot checks (pipeline/spot_check.mjs), one row per sampled day: what matched and why the rest only partly did.
-export async function getSpotChecks() {
-  const bytes = await readData('data/snapshot/spot-checks.json');
-  if (!bytes) return null;
-  const doc = JSON.parse(Buffer.from(bytes).toString('utf8')) as { scope: string; results: { day: string; verdict: string; why: string | null; usdGap: number | null }[] };
-  const days = [...new Set(doc.results.map((r) => r.day))].sort();
-  return {
-    scope: doc.scope,
-    rows: days.map((day) => {
-      const r = doc.results.filter((x) => x.day === day), n = (v: string) => r.filter((x) => x.verdict === v).length;
-      const why = [...new Set(r.filter((x) => x.verdict !== 'match').map((x) => x.why).filter(Boolean))];
-      const gap = Math.max(...r.map((x) => Math.abs(x.usdGap ?? 0)));
-      return { day, checked: r.length, match: n('match'), nearOnly: n('near-only match'), mismatch: n('mismatch') + n('inconclusive'), gap, why };
-    }),
-  };
+// AC-2.3: how completely each frozen chain day was read (data/published/chain_days.json). null when the file is missing.
+export async function getChainChecks() {
+  return chainChecksView(await readPublished<ChainDays>('chain_days.json'));
 }
 
-// FR-21 coverage board: which routes the quote archive samples, against 1Click's volume. null when the file is missing.
+// FR-21 coverage board: which routes carry the swaps and how many have a price on both sides. null when the file is missing.
 export async function getTokenBoard() {
   return tokenBoardView(await readPublished<TokenBoard>('token_board.json'));
 }

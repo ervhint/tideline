@@ -34,11 +34,11 @@
   {
    "id": "Q4",
    "name": "Largest Integrator",
-   "side": "Not Measured",
-   "detail": "Not available",
-   "plain": "The largest frontend's share of the fees paid over the last 30 days. Bullish under 50%; Bearish over 80%.",
-   "source": "intents.near chain sample",
-   "query": "analysis/readings.mjs largestIntegrator → data/snapshot/days"
+   "side": "Neutral",
+   "detail": "SwapKit 76% of visible app fees",
+   "plain": "The largest frontend's share of the app fees paid on token_diff swaps over the last 30 frozen days. Bullish under 50%; Bearish over 80%.",
+   "source": "intents.near token_diff swaps, chain days 2026-10-06 to 2026-11-04",
+   "query": "analysis/integrator.mjs integratorShares → data/chain/*.jsonl"
   },
   {
    "id": "Q5",
@@ -53,9 +53,143 @@
  "verdict": {
   "verdict": "Undecided",
   "score": 2,
-  "missing": 2
+  "missing": 1
  },
- "concentration": null,
+ "concentration": {
+  "window": "30 chain days, 2026-10-06 to 2026-11-04",
+  "days": 30,
+  "gapsInWindow": 0,
+  "source": "intents.near token_diff swaps, app fee paid per referral",
+  "query": "analysis/integrator.mjs integratorShares → data/chain/*.jsonl",
+  "tokenDiffShareOfUsd": 0.8414310728451304,
+  "feeUnreadable": {
+   "groups": 20631,
+   "swaps": 153552,
+   "usd": 227631631.669999
+  },
+  "largest": {
+   "referral": "1click-swapkit",
+   "name": "SwapKit",
+   "share": 0.7555024796987477,
+   "shareOfNamed": 0.7933968030502417,
+   "feeUsd": 2463811.42042885,
+   "totalFeeUsd": 3261155.967894746
+  },
+  "bySize": {
+   "0-1k": {
+    "referral": "1click-swapkit",
+    "name": "SwapKit",
+    "share": 0.7315483292545326
+   },
+   "1k-10k": {
+    "referral": "1click-swapkit",
+    "name": "SwapKit",
+    "share": 0.781842643263863
+   },
+   "10k-100k": {
+    "referral": "1click-swapkit",
+    "name": "SwapKit",
+    "share": 0.7126398296013725
+   },
+   "100k+": {
+    "referral": "1click-swapkit",
+    "name": "SwapKit",
+    "share": 0.792282066768912
+   }
+  },
+  "solvers": {
+   "days": [
+    "2026-10-29",
+    "2026-10-30",
+    "2026-10-31",
+    "2026-11-01",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04"
+   ],
+   "stability": {
+    "perDayTop3": [
+     {
+      "day": "2026-10-29",
+      "top3": 0.7453982226103476
+     },
+     {
+      "day": "2026-10-30",
+      "top3": 0.7503856793656812
+     },
+     {
+      "day": "2026-10-31",
+      "top3": 0.7773263227771913
+     },
+     {
+      "day": "2026-11-01",
+      "top3": 0.7167326970702705
+     },
+     {
+      "day": "2026-11-02",
+      "top3": 0.7223655660837286
+     },
+     {
+      "day": "2026-11-03",
+      "top3": 0.8368649287564602
+     },
+     {
+      "day": "2026-11-04",
+      "top3": 0.9702486243378488
+     }
+    ],
+    "leaveOneDayOut": {
+     "min": 0.732616061211647,
+     "max": 0.7854761705977462
+    }
+   },
+   "bySize": {
+    "0-1k": {
+     "top3": 0.7584492714684992,
+     "hhi": 3258.950335548882,
+     "sampled": 107265
+    },
+    "1k-10k": {
+     "top3": 0.7784160464644484,
+     "hhi": 3388.9242007144953,
+     "sampled": 13369
+    },
+    "10k-100k": {
+     "top3": 0.7747987039611879,
+     "hhi": 3423.737938448404,
+     "sampled": 3540
+    },
+    "100k+": {
+     "top3": 0.8416627065898066,
+     "hhi": 3895.4903119769388,
+     "sampled": 301
+    }
+   },
+   "allSizes": {
+    "usd": 234686510.15,
+    "solvers": 37,
+    "hhi": 3492.901320636629,
+    "top3": 0.7664935773890871,
+    "top": [
+     {
+      "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+      "share": 0.5638787218550335
+     },
+     {
+      "account": "0x8c60fa34790d4661ae4b5302f2a654539352e81b",
+      "share": 0.10240546369412487
+     },
+     {
+      "account": "blockzen-1-main.near",
+      "share": 0.1002093918399287
+     }
+    ]
+   },
+   "tokenDiffOnly": {
+    "top3": 0.6681960371486095
+   }
+  }
+ },
  "solvers": {
   "recent": {
    "days": [
@@ -269,8 +403,8 @@
   ],
   "live": [
    "As of 5 Nov, the evidence does not reach either line (score +2 of 7; the lines are +3 and -3).",
-   "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. Pointing Bearish: solvers keep a lot or a small group of them dominates. The DefiLlama figures come from a dataset nobody can re-run for free.",
-   "Not measured yet: Pricing Power and Largest Integrator.",
+   "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. Pointing Bearish: solvers keep a lot or a small group of them dominates (spread 53.7 bps, top 3 hold 77%). In between: one integrator brings much of the fees but stays under the 80% line (SwapKit 76% of visible app fees). The DefiLlama figures come from a dataset nobody can re-run for free.",
+   "Not measured yet: Pricing Power (0 usable fee changes, 3 needed).",
    "Monthly volume would need to reach about 3.4x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.4x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]
  }
