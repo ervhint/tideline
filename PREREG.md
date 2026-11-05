@@ -23,11 +23,52 @@ NEAR revenue, fees and volume come from DefiLlama (all Intents, not only 1Click)
 
 ## 3. E1 elasticity
 
-Written in T5.
+Written 5 Nov 2026 (T5), before any fee-change event was looked for in the frozen chain days and before any per-frontend volume around a change was read. The window lengths below were chosen from the length of the data alone (32 frozen days, 4 Oct to 4 Nov 2026), not from the fee rates.
+
+**Route.** docs/PLAN.md §5 names two routes. The fee-account route was tried in T1 (run 41790799455) on six fee accounts over a year and found no clean fee change (PLAN §6a), so it gives no events. E1 uses the frozen chain days, which hold every token_diff swap of each day, not a sample.
+
+**Events (fee rates and swap counts only, no USD).**
+- A frontend is a referral on token_diff swaps (`k: "d"`). `1click-unknown` and a blank referral are not frontends and give no events. Transfer swaps carry no referral and are not used.
+- A swap group's fee rate is its `fee` rounded to the nearest whole bps. Groups with `fee: null` are left out of the census.
+- **Daily fee**: on a day with at least 10 token_diff swaps for the frontend, the rounded fee rate with the most swaps, if it covers at least 70% of the frontend's swaps with a fee that day. Otherwise the day has no daily fee.
+- **Stable run**: consecutive days with a daily fee, all the same rate. Days without a daily fee are skipped, not counted, and do not break a run.
+- **Event**: two neighbouring stable runs of at least 7 days each, with rates at least 5 bps apart, where the first day after is at most 7 calendar days after the last day before. `from` is the first run's rate, `to` the second's.
+- Every rate step in the census, of any size or length, counts as a **change** for the "no other change of its own" and control rules below, even when it is not an event.
+- The event list is written to `data/published/elasticity.json` with the census that made it. If no event passes, Q1 reads Not Measured with that reason and nothing below runs.
+
+**Left-out days.** 4 Oct 2026, the last day of the 1 to 4 Oct exploit pause, is left out of every window. Days missing from `data/chain/` (gaps) are left out too.
+
+**Windows.** 7 days before (ending on the last day before) and 7 days after (starting on the first day after). A window needs at least 4 days left after the left-out days. The frontend must have no other change of its own touching either window or the days between.
+
+**Outcome.** USD is the priced side (`vol`) of the frontend's token_diff swaps, all sizes.
+- `dv` = ln(mean daily USD after ÷ mean daily USD before) for the frontend, minus the same for the **control**: all other token_diff referral USD that day (including `1click-unknown` and the blank referral), leaving out any frontend with a change of its own inside the windows.
+- `df` = ln((to + 5) ÷ (from + 5)), the fee change with a 5 bps shift so a 0 bps rate has a log.
+- An event is **usable** when both windows are long enough, the frontend has at least $50,000 in the before window, some volume after, and at least one placebo date.
+
+**Estimate.**
+- E1 = slope through zero of `dv` on `df` across usable events. At −1 a higher fee leaves revenue flat.
+- **Placebo dates**: for each event, every other date on the same frontend with the same gap between windows, both windows long enough, volume in both and no change of its own touching them. 10,000 draws, seed 20261101: each draw swaps every event's `dv` for one of its placebo dates' `dv` at random and takes the slope.
+- **Interval**: estimate ± the 95th percentile of the absolute placebo slopes. p = (placebo slopes at least as far from 0 as the estimate + 1) ÷ (draws + 1). **MDE** = 2.8 × the placebo slopes' standard deviation.
+- **Underpowered** when the interval spans 0 or |estimate| < MDE. Then the page's first line says so (AC-5.3).
+- With fewer than 3 usable events there is no E1 and **Q1 reads Not Measured** (section 6, SRS D2). The page states the count and the fee trace and threshold stay the lead (AC-5.4).
+
+**Checks**, each a full run of its own, published beside the main result; none sets the reading:
+- Drop the frontend with the most before-window USD.
+- Fee shift 2 bps and 10 bps instead of 5.
+- Leave out events whose windows touch 28 to 30 Oct 2026, when flow moved from token_diff swaps to the hub (PROGRESS.md, T3).
+- CoW Swap's DefiLlama daily volume as the control instead of the other frontends, and the same for each venue in `data/snapshot/control_venues.json`. A day the venue lacks makes the window unusable.
+
+**Limits, said on the page.** 32 days allow few events and few placebo dates, so an underpowered result is likely. token_diff swaps are a shrinking part of the flow after 28 Oct. A frontend's fee rate on chain is a transfer ÷ swap amount, so it is read to the nearest bps, not exactly.
 
 ## 4. E2 pass-through
 
-Written in T5.
+Written 5 Nov 2026 (T5), with section 3 and before any cost around a fee change was read.
+
+- Same usable events, windows, placebo dates, draws and interval rules as section 3, with seed 20261102.
+- For each window: the frontend's **all-in cost** in bps, by section 7's rules (priced groups with a readable fee, the price check, gross = in ÷ (1 − fee/10,000)), all sizes. A side figure uses the $1k–10k bucket only, seed 20261103.
+- `dcost` = all-in cost after − before. E2 = slope through zero of `dcost` on `to − from` (bps). 1 means users paid all of the fee change; 0 means someone else absorbed it.
+- An event or placebo date with no priced swaps in a window has no `dcost` and is left out of E2 only. With fewer than 3 events left there is no E2.
+- Prices are DefiLlama hourly (section 1), so the price noise of section 7 sits in both windows.
 
 ## 5. E3 solver concentration
 
