@@ -46,6 +46,12 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - Finding for T4/T5/T6: in early October 99.4% to 99.8% of swaps are token_diff (about 18k to 23k a day) and transfer swaps only 48 to 108 a day; on 3 Nov token_diff is 37% of swaps and the hub carries 63%. Totals per day stay about the same, so flow likely moved from token_diff to the hub somewhere between 6 Oct and 3 Nov. Not confirmed; the 30 days show when. Frontend readings use token_diff only, so they cover far less of the flow after the shift.
 - Mistake to remember: the force-push to `test` also started a `spike` run (the push counted the spike files as changed). Cancelled.
 
+## Repo public (5 Nov 2026, human's yes)
+
+- `ervhint/tideline` is public since about 07:20 UTC 5 Nov, so Actions minutes cost nothing from then on. Why: the account is on the Free plan (2,000 minutes a month shared by all private repos; 1,503 used by 02:50 UTC 5 Nov, before the backfill), and one chain day takes 45 to 90 minutes, so the daily job alone would not fit. Before switching: gitleaks over the full history clean, no Explorer or 1Click data ever committed, no other project's name anywhere. Commit author emails are visible (the human knows).
+- Commits made with a Claude attribution line (against rule 20) were reworded: `main` 8480491 became fbbc14b with the same content, and `test` was force-pushed to the same commit. Both force-pushes had the human's yes.
+- Why T2's schedule did not run: our setup checks out (workflows active, cron lines valid, on the default branch, GitHub status operational). GitHub created no scheduled run of chain-day or attest-days at all, and refresh (hourly) ran only twice in about 15 hours, so GitHub is dropping most of our scheduled runs. Not provable from our side.
+
 ## Open before T4 (as of 5 Nov 2026)
 
 - **T2 is still open.** It closes when the first scheduled chain-day run freezes 2026-11-04 with no hand, and attest-days anchors it. As of 04:05 UTC on 5 Nov (11:05 WIB) the 03:17 UTC run had not started (only `refresh` schedules had). Check at 13:00 WIB: `gh run list --workflow chain-day.yml`. If it never ran, find out why (schedule skipped? workflow disabled?) and say so in plain words; run it by hand if needed. The attest-days slots are 05:41, 08:41 and 12:41 UTC (12:41, 15:41, 19:41 WIB); run `attest-days` by hand with dry_run off if the day is frozen but not anchored. When it works, write "T2 closed" with the date in the T2 section.
