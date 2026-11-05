@@ -5,11 +5,8 @@ import { IntervalPlot } from '@/components/IntervalPlot';
 import { Page } from '@/components/Page';
 import { getNumbers } from '@/lib/data';
 
-// Axis runs from the first day read to the last (Figma: ticks on a date axis).
-const START = Date.parse('2025-09-01');
-const END = Date.parse('2026-10-29');
-const pos = (d: string) => ((Date.parse(d) - START) / (END - START)) * 100;
-const labels = [['Sep 2025', '2025-09-01'], ['Dec 2025', '2025-12-01'], ['Mar 2026', '2026-03-01'], ['Jun 2026', '2026-06-01'], ['Sep 2026', '2026-09-01']];
+// Axis runs from the first day read to the last (Figma: ticks on a date axis). Without the file it shows the sample's span.
+const SAMPLE_AXIS = { start: '2025-09-01', end: '2026-10-29', labels: [['Sep 2025', '2025-09-01'], ['Dec 2025', '2025-12-01'], ['Mar 2026', '2026-03-01'], ['Jun 2026', '2026-06-01'], ['Sep 2026', '2026-09-01']] as [string, string][] };
 
 export const revalidate = 300; // re-read the published data every 5 minutes
 
@@ -17,6 +14,10 @@ export const revalidate = 300; // re-read the published data every 5 minutes
 export default async function Elasticity({ searchParams }: { searchParams: Promise<{ state?: string }> }) {
   const { elasticity } = await getNumbers({ few: (await searchParams).state === 'few' });
   const days = elasticity.days ?? [];
+  const ax = elasticity.axis ?? SAMPLE_AXIS;
+  const start = Date.parse(ax.start), end = Date.parse(ax.end);
+  const pos = (d: string) => ((Date.parse(d) - start) / (end - start)) * 100;
+  const labels = ax.labels;
   return (
     <Page title="Does Volume Leave When Fees Rise?">
       <ErrorSwap

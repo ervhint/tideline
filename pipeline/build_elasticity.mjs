@@ -1,69 +1,76 @@
-// Reads the daily snapshot and the frozen events, writes data/published/elasticity.json (U5, E1 and E2).
-// Usage: node pipeline/build_elasticity.mjs   (set SNAPSHOT_DIR / OUT / REPS to change where it reads, writes, or how many placebo draws)
-import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
+// E1 elasticity and E2 pass-through on the frozen chain days (T5, PREREG.md sections 3 and 4) -> data/published/elasticity.json.
+// No network: reads data/chain/*.jsonl and the DefiLlama control venues in data/snapshot. CHAIN_DIR / OUT / REPS override.
+import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { gunzipSync } from 'node:zlib';
-import { selectEvents } from '../analysis/prereg_events.mjs';
-import { passThroughRef } from '../analysis/passthrough_ref.mjs';
-import { changeRanges, estimateAll, feeSwitch, panelFromRows, REPS, SEED } from '../analysis/elasticity.mjs';
+import { parseDayFile } from '../analysis/chain_day.mjs';
+import {
+  census, panelOf, changeRanges, estimateAll, REPS, SEED, MIN_EVENTS, MIN_RUN_DAYS, MIN_CHANGE_BPS, MAX_GAP_DAYS, LEFT_OUT_DAYS,
+} from '../analysis/elasticity.mjs';
 
-const dir = process.env.SNAPSHOT_DIR ?? 'data/snapshot/days';
+const dir = process.env.CHAIN_DIR ?? 'data/chain';
 const out = process.env.OUT ?? 'data/published/elasticity.json';
 const reps = Number(process.env.REPS ?? REPS);
-const censusFile = 'data/census/fee-events-full-2026-11-01.json';
 
-const files = readdirSync(dir).filter((f) => f.endsWith('.csv.gz')).sort();
-const days = files.map((f) => f.slice(0, 10));
-const rows = files.flatMap((f) => gunzipSync(readFileSync(`${dir}/${f}`)).toString().split('\n').slice(1).filter(Boolean).map((l) => {
-  const [day, referral, , bucket, , usd_in, usd_out] = l.split(',');
-  return { day, referral, bucket, usd_in: +usd_in, usd_out: +usd_out };
-}));
+const files = readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f)).sort();
+if (!files.length) throw new Error(`no frozen chain days in ${dir}`);
+const days = files.map((f) => {
+  const p = parseDayFile(readFileSync(`${dir}/${f}`, 'utf8'), f.slice(0, 10));
+  if (p.problems.length) throw new Error(`${f}: ${p.problems.join('; ')}`);
+  return p;
+});
 
-const census = JSON.parse(readFileSync(censusFile, 'utf8'));
-const panel = panelFromRows(days, rows);
-const ranges = changeRanges(panel, census.events);
-const stable30 = new Set(census.events.filter((e) => e.daysBefore >= 30 && e.daysAfter >= 30).map((e) => `${e.key}|${e.lastDayBefore}`));
-const events = selectEvents(census.events).map((e) => ({ ...e, stable30: stable30.has(`referral:${e.frontend}|${e.lastDayBefore}`) }));
+const cen = census(days);
+const panel = panelOf(days);
+const ranges = changeRanges(panel, cen);
 
-// CoW Swap's daily volume from DefiLlama (data/snapshot/cow_daily.json), on the same days as the panel. A missing day stays 0, which makes its windows unusable.
-const cowDays = new Map(JSON.parse(readFileSync('data/snapshot/cow_daily.json', 'utf8')).days.map((d) => [d.day, d.volume]));
-const cow = Float64Array.from(days, (d) => cowDays.get(d) ?? 0);
+// Control venues from DefiLlama on the panel's calendar days (PREREG 3 checks). A day a venue lacks stays 0, which makes its windows unusable.
+const series = (list) => { const m = new Map(list.map((d) => [d.day, d.volume])); return Float64Array.from(panel.days, (d) => m.get(d) ?? 0); };
+const cow = JSON.parse(readFileSync('data/snapshot/cow_daily.json', 'utf8'));
+const others = JSON.parse(readFileSync('data/snapshot/control_venues.json', 'utf8'));
+const venues = [{ key: 'cow', name: 'CoW Swap', series: series(cow.days) }, ...Object.entries(others.venues).map(([key, v]) => ({ key, name: v.name, series: series(v.days) }))];
 
-// More control venues (FR-21, data/snapshot/control_venues.json), on the same days the same way.
-const VENUES = 'data/snapshot/control_venues.json';
-const venues = existsSync(VENUES) ? Object.entries(JSON.parse(readFileSync(VENUES, 'utf8')).venues).map(([key, v]) => {
-  const m = new Map(v.days.map((d) => [d.day, d.volume]));
-  return { key, name: v.name, series: Float64Array.from(days, (d) => m.get(d) ?? 0) };
-}) : [];
+// Steps that came close: at least 5 bps, with one side a run of 7 days or more, and which rule each one missed. Shown, never used.
+const nearMisses = cen.frontends.flatMap((f) => f.runs.slice(1).map((b, i) => ({ a: f.runs[i], b, frontend: f.frontend })))
+  .filter(({ a, b }) => Math.abs(b.fee - a.fee) >= MIN_CHANGE_BPS && (a.days >= MIN_RUN_DAYS || b.days >= MIN_RUN_DAYS))
+  .filter(({ a, b, frontend }) => !cen.events.some((e) => e.frontend === frontend && e.lastDayBefore === a.end))
+  .map(({ a, b, frontend }) => {
+    const gap = (Date.parse(b.start) - Date.parse(a.end)) / 86_400_000;
+    const missed = [a.days < MIN_RUN_DAYS && `${a.days} days at the old rate (${MIN_RUN_DAYS} needed)`, b.days < MIN_RUN_DAYS && `${b.days} days at the new rate (${MIN_RUN_DAYS} needed)`, gap > MAX_GAP_DAYS && `${gap} days from the old rate to the new (at most ${MAX_GAP_DAYS})`].filter(Boolean);
+    return { frontend, from: a.fee, to: b.fee, lastDayBefore: a.end, firstDayAfter: b.start, daysBefore: a.days, daysAfter: b.days, missed: missed.join(', ') };
+  });
 
-const result = estimateAll(panel, ranges, events, { reps, cow, venues });
-// The protocol fee switch: revenue steps up on 2026-02-23 in data/snapshot/defillama_daily.json (about 1,300 a day before, 6,275 that day, rising after), which confirms the date.
-const switchResult = feeSwitch(panel, cow, '2026-02-23');
-const switchOthers = venues.map((v) => ({ name: v.name, ...feeSwitch(panel, v.series, '2026-02-23') })).filter((s) => s.change !== undefined);
-// FR-08: pass-through against Binance prices, from the window totals pipeline/pull_passthrough.mjs saved.
-const REF = 'data/snapshot/passthrough_ref.json';
-const ref = existsSync(REF) ? JSON.parse(readFileSync(REF, 'utf8')) : null;
-const e2Reference = ref && { label: 'Pass-through against Binance prices (FR-08)', prices: ref.prices, ...passThroughRef(ref.events) };
-const pack = (r) => ({ ...r, events: r.events.map(({ cands, ...e }) => e) });
-const fmt = (v) => v.toFixed(2);
-const numbers = (m, day) => [m.e1 && { id: 'e1.elasticity', value: m.e1.estimate, unit: 'elasticity', display: fmt(m.e1.estimate), asOf: day, plain: `A 1% higher fee changed volume by ${fmt(m.e1.estimate)}%, interval ${fmt(m.e1.lo)} to ${fmt(m.e1.hi)}. 1Click only.`, query: 'estimate() in analysis/elasticity.mjs on data/snapshot/days; npm run elasticity', source: 'Explorer snapshot' },
-  m.e2 && { id: 'e2.passthrough', value: m.e2.estimate, unit: 'ratio', display: fmt(m.e2.estimate), asOf: day, plain: `Of each fee change, users paid ${fmt(m.e2.estimate)}, interval ${fmt(m.e2.lo)} to ${fmt(m.e2.hi)}. 1Click only.`, query: 'estimate() in analysis/elasticity.mjs, e2', source: 'Explorer snapshot' }].filter(Boolean);
+const result = cen.events.length ? estimateAll(panel, ranges, cen.events, { venues, reps }) : null;
+const pack = (r) => r && { ...r, events: r.events };
+const main = result ? pack(result.main) : { usable: 0, events: [], dropped: [], e1: null, e2: null, e2Bucket: null, e2Events: 0, e2BucketEvents: 0 };
+const usable = main.usable;
+const notMeasured = usable >= MIN_EVENTS ? null : cen.events.length === 0
+  ? `No fee change passes the PREREG.md section 3 rules in the ${days.length} frozen days: a frontend must hold one rate for ${MIN_RUN_DAYS} days, then another rate at least ${MIN_CHANGE_BPS} bps away for ${MIN_RUN_DAYS} days.`
+  : `Only ${usable} of the ${cen.events.length} fee changes found are usable, under the ${MIN_EVENTS} needed.`;
+
 const doc = {
-  asOf: `${days.at(-1)}T23:59:59Z`,
-  source: 'Explorer snapshot, 1Click only',
-  prereg: 'PREREG.md, frozen 2026-11-01',
-  seed: SEED, reps, daysRead: days.length, frozenEvents: events.length,
-  main: pack(result.main),
-  checks: Object.fromEntries(Object.entries(result.checks).map(([k, v]) => [k, pack(v)])),
-  numbers: numbers(result.main, days.at(-1)),
-  feeSwitch: switchResult && { ...switchResult, label: 'Protocol fee switch, 23 Feb 2026 (descriptive, CoW Swap as the control)', dateSource: 'DefiLlama daily revenue steps up on 2026-02-23', others: switchOthers.map(({ name, cowLogChange, change }) => ({ name, venueLogChange: cowLogChange, change })) },
-  e2Reference,
-  notRun: ref ? [] : ['Pass-through against Binance prices (FR-08): run node pipeline/pull_passthrough.mjs first'],
+  asOf: `${days.at(-1).head.day}T23:59:59Z`,
+  source: 'intents.near token_diff swaps on frozen chain days (data/chain)',
+  prereg: 'PREREG.md sections 3 and 4, committed 5 Nov 2026 (bfda0f2)',
+  seed: SEED, reps,
+  from: days[0].head.day, to: days.at(-1).head.day, daysRead: days.length, leftOutDays: LEFT_OUT_DAYS,
+  census: {
+    frontends: cen.frontends.length,
+    withStableRun: cen.frontends.filter((f) => f.runs.some((r) => r.days >= MIN_RUN_DAYS)).length,
+    changes: cen.frontends.reduce((t, f) => t + f.changes.length, 0),
+    events: cen.events,
+    nearMisses,
+  },
+  frozenEvents: cen.events.length,
+  main,
+  checks: result ? Object.fromEntries(Object.entries(result.checks).map(([k, v]) => [k, pack(v)])) : {},
+  notMeasured,
+  notRun: notMeasured ? ['E1, E2 and their checks: no estimate without at least 3 usable fee changes (PREREG.md section 3)'] : [],
+  query: 'census and estimateAll in analysis/elasticity.mjs over data/chain/*.jsonl, by pipeline/build_elasticity.mjs; npm run elasticity',
 };
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(doc, null, 1) + '\n');
-const m = doc.main;
-console.log(`${events.length} frozen events, ${m.usable} usable -> ${out}`);
-if (m.e1) console.log(`E1 elasticity ${m.e1.estimate.toFixed(2)} [${m.e1.lo.toFixed(2)}, ${m.e1.hi.toFixed(2)}] p=${m.e1.p.toFixed(4)} MDE ${m.e1.mde.toFixed(2)} underpowered=${m.e1.underpowered}`);
-if (m.e2) console.log(`E2 pass-through ${m.e2.estimate.toFixed(2)} [${m.e2.lo.toFixed(2)}, ${m.e2.hi.toFixed(2)}] on ${m.e2Events} events`);
-for (const d of m.dropped) console.log('dropped', d.frontend, d.lastDayBefore, d.reason);
+console.log(`${days.length} chain days ${doc.from} to ${doc.to}: ${cen.frontends.length} frontends, ${doc.census.changes} rate steps, ${cen.events.length} events, ${usable} usable -> ${out}`);
+if (notMeasured) console.log(`Q1 Not Measured: ${notMeasured}`);
+for (const m of nearMisses) console.log(`near miss ${m.frontend} ${m.from} -> ${m.to} bps (${m.lastDayBefore} / ${m.firstDayAfter}): ${m.missed}`);
+if (main.e1) console.log(`E1 ${main.e1.estimate.toFixed(2)} [${main.e1.lo.toFixed(2)}, ${main.e1.hi.toFixed(2)}] p=${main.e1.p.toFixed(4)} MDE ${main.e1.mde.toFixed(2)} underpowered=${main.e1.underpowered}`);
+if (main.e2) console.log(`E2 ${main.e2.estimate.toFixed(2)} [${main.e2.lo.toFixed(2)}, ${main.e2.hi.toFixed(2)}] on ${main.e2Events} events`);

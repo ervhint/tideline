@@ -1,0 +1,48 @@
+{
+ "asOf": "2026-11-04T23:59:59Z",
+ "source": "intents.near token_diff swaps on frozen chain days (data/chain)",
+ "prereg": "PREREG.md sections 3 and 4, committed 5 Nov 2026 (bfda0f2)",
+ "seed": 20261101,
+ "reps": 10000,
+ "from": "2026-10-04",
+ "to": "2026-11-04",
+ "daysRead": 32,
+ "leftOutDays": [
+  "2026-10-04"
+ ],
+ "census": {
+  "frontends": 356,
+  "withStableRun": 37,
+  "changes": 18,
+  "events": [],
+  "nearMisses": [
+   {
+    "frontend": "1click-gemwallet",
+    "from": 50,
+    "to": 101,
+    "lastDayBefore": "2026-10-24",
+    "firstDayAfter": "2026-11-01",
+    "daysBefore": 19,
+    "daysAfter": 2,
+    "missed": "2 days at the new rate (7 needed), 8 days from the old rate to the new (at most 7)"
+   }
+  ]
+ },
+ "frozenEvents": 0,
+ "main": {
+  "usable": 0,
+  "events": [],
+  "dropped": [],
+  "e1": null,
+  "e2": null,
+  "e2Bucket": null,
+  "e2Events": 0,
+  "e2BucketEvents": 0
+ },
+ "checks": {},
+ "notMeasured": "No fee change passes the PREREG.md section 3 rules in the 32 frozen days: a frontend must hold one rate for 7 days, then another rate at least 5 bps away for 7 days.",
+ "notRun": [
+  "E1, E2 and their checks: no estimate without at least 3 usable fee changes (PREREG.md section 3)"
+ ],
+ "query": "census and estimateAll in analysis/elasticity.mjs over data/chain/*.jsonl, by pipeline/build_elasticity.mjs; npm run elasticity"
+}

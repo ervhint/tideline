@@ -11,6 +11,9 @@ test('T-6.1 Q1 sides on the -1 line: exactly on it is Neutral', () => {
   assert.equal(q1({ lo: -3, hi: -1 }).side, N);
   assert.equal(q1({ lo: -3, hi: -1.01 }).side, R);
   assert.equal(q1(null).side, M);
+  assert.equal(q1(null).detail, 'Still to estimate');
+  assert.equal(q1(null, 0).detail, '0 usable fee changes, 3 needed');
+  assert.equal(q1(null, 1).detail, '1 usable fee change, 3 needed');
 });
 
 const days = (n, fees, rev) => Array.from({ length: n }, () => ({ fees, revenue: rev }));

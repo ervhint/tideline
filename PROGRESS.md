@@ -75,8 +75,17 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - Tests: `npm test` 165/165, `tsc --noEmit` clean. Chrome: 8 pages × 4 states (normal, stale, loading, error) at 1440 and 375, no sideways scroll, no broken text, no console errors.
 - For T6: the Follow the Fee error state still says "Quotes Did Not Load" (design copy, ask before changing). The Concentration page's solver note (`lib/thesis_view.ts`) hard-codes "sits on the 60% line" and only shows once `concentration` is built from chain days.
 
+## T5 elasticity on chain: done, Q1 Not Measured (5 Nov 2026)
+
+- PREREG.md §3 (E1) and §4 (E2) written and committed (bfda0f2, the human's yes) before any fee change was looked for or any per-frontend volume read. Route: the frozen chain days (token_diff swaps, every swap of each day); the fee-account route found no clean event in T1. Windows 7 days each side, chosen from the 32-day length alone.
+- `analysis/elasticity.mjs` rewritten for chain days (+ 10 tests: known elasticity −1.5 and pass-through 0.7 recovered, census rules on each boundary, left-out days, checks). `pipeline/build_elasticity.mjs` writes `data/published/elasticity.json`; `verify` rebuilds it (ALL OK, 1,765 values). Explorer-era `event_census`, `prereg_events` and `passthrough_ref` (Binance) removed.
+- **Result: 0 events.** 356 frontends, 37 held one fee for 7+ days, 18 fee steps in all, none passes. Closest: `1click-gemwallet` 50 → 101 bps (last day at 50: 24 Oct, first at 101: 1 Nov), with 2 days at the new rate and 8 days between. Even as more days freeze it can't qualify: the 8-day gap breaks the "at most 7 days between" rule. **Q1 Not Measured** ("0 usable fee changes, 3 needed"); verdict stays Undecided (score +2, 2 not measured). E2 not run (needs the same events).
+- Elasticity page shows the count, the closest miss, what was searched, and a date axis over the days read (4 Oct to 4 Nov) instead of the sample's fixed span. The Model page's elasticity slider keeps its fallback range (no E1).
+- Tests: `npm test` 158/158, `tsc --noEmit` clean, gitleaks flags only gitignored `.env` and `.next`. Chrome: 8 pages × 4 states plus `/elasticity/?state=few` at 1440 and 375 (66 loads), no sideways scroll, nothing past the edge, no broken text, no console errors.
+- Uncertain: the 4 Oct exploit-pause day comes from earlier code, not checked against a public source (it only affects windows touching 4 Oct, and no window exists). With 32 days a usable event needs a clean step around mid to late October; more frozen days add room, so the census re-runs with each day.
+
 ## Next
 
 - **6 Nov, 13:00 WIB:** `gh run list --workflow chain-day.yml`. If a scheduled run froze 2026-11-05 by itself, T2 is closed: write "T2 closed" with the date. If not yet, check again at 19:00 WIB (the last slot is 16:17 WIB, a run takes 1.5 to 2 h). If no slot fired all day, GitHub's scheduler can't be relied on: start the daily run from outside instead (a free cron service or Supabase cron calling the workflow_dispatch API with a token limited to Actions on this repo), with the human's yes. Freeze 2026-11-05 by hand then too.
-- **Then T5** (elasticity on chain): write PREREG §3 and §4 before reading any per-frontend volume around a fee change.
+- **Then T6** (wire-up).
 - Still open from PLAN §7: a paid FastNEAR key, recommended no.

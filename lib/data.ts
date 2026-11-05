@@ -61,7 +61,7 @@ async function listQuoteDays(): Promise<string[]> {
 export async function getNumbers({ few = false } = {}) {
   const trace = await readPublished<FeeTrace>('fee_trace.json');
   const raw = await readPublished<ElasticityDoc>('elasticity.json');
-  const el = raw && few ? { ...raw, main: { ...raw.main, usable: 2, e1: null } } : raw;
+  const el = raw && few ? { ...raw, frozenEvents: Math.max(raw.frozenEvents, 4), main: { ...raw.main, usable: 2, e1: null } } : raw;
   const th = await readPublished<ThesisDoc>('thesis.json');
   const head = thesisView(th, sample, readings);
   return { sample: head.sample, readings: head.readings, headline: head, fee: feeView(trace, sampleFee), elasticity: elasticityView(el, elasticity) };

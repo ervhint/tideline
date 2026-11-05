@@ -17,7 +17,7 @@ const GAP_MS = Number(process.env.GAP_MS ?? 1000);
 const FEE_WEEKS = Number(process.env.FEE_WEEKS ?? 26);
 const OUT = 'spike';
 const MAX_PAGES = 1500; // about 300,000 transactions: a cap in case a filter is ignored
-const MIN_CHANGE_BPS = 5; // analysis/prereg_events.mjs
+const MIN_CHANGE_BPS = 5; // PREREG.md section 3
 
 mkdirSync(OUT, { recursive: true });
 const result = { day: DAY, startedAt: new Date().toISOString(), settings: { SAMPLE, GAP_MS, FEE_WEEKS } };

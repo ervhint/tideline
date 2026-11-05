@@ -7,9 +7,9 @@
    "id": "Q1",
    "name": "Pricing Power",
    "side": "Not Measured",
-   "detail": "Still to estimate",
+   "detail": "0 usable fee changes, 3 needed",
    "plain": "Whether raising a fee brings in more revenue. It is Bullish only if the whole interval is above -1.",
-   "source": "intents.near chain sample",
+   "source": "intents.near token_diff swaps, frozen chain days",
    "query": "analysis/elasticity.mjs → data/published/elasticity.json"
   },
   {

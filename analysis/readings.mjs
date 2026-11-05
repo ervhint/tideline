@@ -3,11 +3,11 @@
 const B = 'Bullish', N = 'Neutral', R = 'Bearish', M = 'Not Measured';
 const pct = (x) => `${(x * 100).toFixed(0)}%`;
 
-// Q1: the E1 interval against the -1 line.
-export function q1(e1) {
-  if (!e1) return { side: M, detail: 'Still to estimate' };
+// Q1: the E1 interval against the -1 line. usable: how many fee changes were usable once the census has run (null before it has).
+export function q1(e1, usable = null) {
+  if (!e1) return { side: M, detail: usable == null ? 'Still to estimate' : `${usable} usable fee change${usable === 1 ? '' : 's'}, 3 needed` };
   const side = e1.lo > -1 ? B : e1.hi < -1 ? R : N;
-  return { side, detail: `Elasticity ${e1.estimate?.toFixed(2) ?? ''} (${e1.lo.toFixed(2)} to ${e1.hi.toFixed(2)}), 1Click only`.replace('  ', ' ') };
+  return { side, detail: `Elasticity ${e1.estimate?.toFixed(2) ?? ''} (${e1.lo.toFixed(2)} to ${e1.hi.toFixed(2)}), token_diff swaps only`.replace('  ', ' ') };
 }
 
 // Q2: days = [{ fees, revenue }] oldest first, daily DefiLlama values. 30-day capture and the last 14 days.

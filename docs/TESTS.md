@@ -1,4 +1,4 @@
-# Tideline: tests
+#undefined✅undefined✅undefined✅undefined✅undefined✅undefined⏭ replaced | Binance is not used (data rule); E2 uses DefiLlama hourly prices per PREREG §4 |pass | analysis/elasticity.test.mjs (CoW control, missing day). Fee switch dropped: 23 Feb 2026 is outside the chain days |pass | Chrome 5 Nov, real data: "No fee change passes…", 0 events, fee trace and threshold stay the lead; ?state=few shows "Only 2 of the 4" |pass (unit only) | lib/elasticity_view.test.mjs; no real interval exists yet (0 events), so not seen in Chrome |pass | analysis/elasticity.test.mjs: known −1.5 and pass-through 0.7 recovered; placebo, MDE, drop-the-largest output |pass | PREREG §3–4 committed in bfda0f2 before the chain estimation code (5 Nov) |Tideline: tests
 
 Every test below comes from docs/SRS.md. IDs match the SRS exactly. Rows marked "proposed" are not in the SRS; they fill a gap and need the human's OK.
 

@@ -11,9 +11,10 @@ const pub = process.env.PUBLISHED_DIR ?? 'data/published';
 const TOL = 1e-9;
 
 // Each file is rebuilt by the script that wrote it. chain_days.json comes from the frozen day files in data/chain (T2), which build_chain_days checks
-// for consistency first; fee_trace.json from the last 7 of them (T4). elasticity and token_board come back as T5 and T6 rebuild them.
+// for consistency first; fee_trace.json from the last 7 of them (T4); elasticity.json from all of them (T5), before thesis.json reads it. token_board comes back in T6.
 const checks = [
   { file: 'fee_trace.json', script: 'pipeline/build_fee_trace.mjs' },
+  { file: 'elasticity.json', script: 'pipeline/build_elasticity.mjs' },
   { file: 'thesis.json', script: 'pipeline/build_thesis.mjs' },
   { file: 'reconciliation.json', script: 'pipeline/build_reconciliation.mjs' },
   { file: 'chain_days.json', script: 'pipeline/build_chain_days.mjs' },
