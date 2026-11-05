@@ -1,13 +1,12 @@
 // Computes the five readings, the verdict and the V* band from files only (no network) and writes data/published/thesis.json (U6).
 // Inputs: data/snapshot/defillama_daily.json, data/published/model_inputs.json, data/labels/frontends.json, and once the chain sample
-// exists (T2 to T5) data/snapshot/{days,solvers} and data/published/elasticity.json. A reading whose input is missing is Not Measured.
+// exists (T2 to T5) data/snapshot/days, data/published/fee_trace.json (T4) and data/published/elasticity.json. A reading whose input is missing is Not Measured.
 // Usage: node pipeline/build_thesis.mjs   (OUT overrides the output path)
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { q1, q2, q3, q4, q5, verdict, largestIntegrator, largestIntegratorBySize, runRates } from '../analysis/readings.mjs';
 import { thesisText } from '../analysis/thesis_text.mjs';
-import { solverConcentration } from '../analysis/solvers.mjs';
 import { vStar, vStarRange } from '../lib/model.ts';
 
 const OUT = process.env.OUT ?? 'data/published/thesis.json';
@@ -34,20 +33,15 @@ const rows = dayFiles.slice(-30).flatMap((f) =>
 
 const top = lastSnapshotDay && largestIntegrator(rows, lastSnapshotDay, 30);
 
-// E3: solver concentration from the sampled days in data/snapshot/solvers. Q3 uses the latest 7 sampled days; the days before
-// the 2026-02-23 fee switch are reported beside them (PREREG.md section 5).
-const SWITCH = '2026-02-23';
-const solverDays = (existsSync('data/snapshot/solvers') ? readdirSync('data/snapshot/solvers') : []).filter((f) => f.endsWith('.json')).sort().map((f) => json(`data/snapshot/solvers/${f}`));
-const recentDays = solverDays.filter((d) => d.day >= SWITCH).slice(-7);
-const beforeDays = solverDays.filter((d) => d.day < SWITCH);
-// How much the pooled top-3 share leans on any one day: each day alone, and the pool with each day left out.
-const stability = recentDays.length > 1 && {
-  perDayTop3: recentDays.map((d) => ({ day: d.day, top3: solverConcentration([d]).allSizes.top3 })),
-  leaveOneDayOut: (() => { const v = recentDays.map((_, i) => solverConcentration(recentDays.filter((_, j) => j !== i)).allSizes.top3); return { min: Math.min(...v), max: Math.max(...v) }; })(),
+// Q3 and E3 from the realised cost of the last 7 frozen chain days (T4, PREREG.md sections 5 and 8), as built into fee_trace.json.
+const trace = existsSync(`${PUB}/fee_trace.json`) ? json(`${PUB}/fee_trace.json`) : null;
+const solvers = trace && {
+  recent: trace.solvers, beforeSwitch: null,
+  source: `intents.near chain days ${trace.from} to ${trace.to}: USD per filler account, token_diff and transfer swaps, the hub as one account`,
+  query: 'analysis/realised_cost.mjs solverConcentrationChain → data/published/fee_trace.json',
 };
-const solvers = recentDays.length ? { recent: { ...solverConcentration(recentDays), stability }, beforeSwitch: beforeDays.length ? solverConcentration(beforeDays) : null, source: 'Sampled swaps per size bucket, solver read from intents.near token_diff logs (FastNEAR)', query: 'analysis/solvers.mjs solverConcentration → data/snapshot/solvers' } : null;
 const label = top && labels.find((l) => l.referral === top.referral);
-const spread = null; // T4: the realised cost of on-chain swaps against DefiLlama prices
+const spread = trace?.q3.spreadBps ?? null;
 
 const R = [
   { id: 'Q1', name: 'Pricing Power', ...q1(elasticity?.main.usable >= 3 ? elasticity.main.e1 : null),
@@ -55,7 +49,7 @@ const R = [
   { id: 'Q2', name: "NEAR's Share of Fees", ...q2(llama.days),
     plain: 'The part of Intents fees that DefiLlama books as revenue. Bullish above 30%; Bearish only if it was under 20% on each of the last 14 days.', source: 'DefiLlama, all Intents', query: 'analysis/readings.mjs q2 → data/snapshot/defillama_daily.json' },
   { id: 'Q3', name: 'Solver Competition', ...q3({ spreadBps: spread, top3: solvers?.recent.allSizes.top3 ?? null }),
-    plain: 'Two numbers: what solvers keep on $1,000 swaps, and how much of the volume the top 3 solvers fill. Bullish under 5 bps and 60%; Bearish over 10 bps or 80%.', source: solvers ? `intents.near chain sample; solvers from ${recentDays.length} sampled days` : 'intents.near chain sample; not collected yet', query: 'analysis/readings.mjs q3 → data/snapshot/solvers' },
+    plain: 'Two numbers: what solvers keep on $1k to $10k swaps, and how much of the volume the top 3 solvers fill. Bullish under 5 bps and 60%; Bearish over 10 bps or 80%.', source: trace ? `intents.near chain days ${trace.from} to ${trace.to}, DefiLlama hourly prices` : 'intents.near chain days; not built yet', query: 'analysis/realised_cost.mjs q3Spread, solverConcentrationChain → data/published/fee_trace.json' },
   { id: 'Q4', name: 'Largest Integrator', ...q4(top?.share ?? null, label ? label.name : top ? 'An unlabelled frontend' : null),
     plain: 'The largest frontend\'s share of the fees paid over the last 30 days. Bullish under 50%; Bearish over 80%.', source: 'intents.near chain sample', query: 'analysis/readings.mjs largestIntegrator → data/snapshot/days' },
   { id: 'Q5', name: 'Path to Deflation', ...q5(runRates(llama.days)),
@@ -73,7 +67,7 @@ const v16 = at(1.6), v25 = at(2.5);
 
 const result = {
   asOf: inputs.asOf,
-  prereg: null, // Tideline's PREREG.md is written in T4
+  prereg: 'PREREG.md',
   snapshotLastDay: lastChainDay,
   readings: R,
   verdict: v,

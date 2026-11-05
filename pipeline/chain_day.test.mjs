@@ -42,6 +42,14 @@ test('a first run finds the fillers, reads the census and freezes a day file tha
   assert.equal(p.head.census.listed, 7);
 });
 
+test('a transaction returned twice or not asked for is read once or not at all', async () => {
+  const io = fake({ readTxs: async (hashes) => [...hashes.map((h) => TXS.get(h)), TXS.get(hashes[0]), tx('unlisted')] });
+  const a = await runDay({ day: '2026-11-03', io, fillersDoc: null, log: quiet });
+  const b = await runDay({ day: '2026-11-03', io: fake(), fillersDoc: null, log: quiet });
+  assert.equal(parseDayFile(a.text).head.census.read, 7);
+  assert.equal(a.text, b.text);
+});
+
 test('the same inputs freeze to the same bytes', async () => {
   const a = await runDay({ day: '2026-11-03', io: fake(), fillersDoc: null, log: quiet });
   const b = await runDay({ day: '2026-11-03', io: fake(), fillersDoc: null, log: quiet });

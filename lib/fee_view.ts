@@ -1,60 +1,69 @@
-// S2 view of the fee trace. Pure and type-annotations only, so Node can run it directly (tests) and the site can import it.
-export type TraceGroup = {
-  pair: string; sizeUsd: number; n: number; failed: number;
-  allInBps?: number; allInMinBps?: number; allInMaxBps?: number;
-  appFeeBps?: number; withdrawBps?: number; protocolBps?: number; unexplainedBps?: number;
+// S2 view of the realised fee trace (T4, PREREG.md section 7). Pure and type-annotations only, so Node can run it directly (tests) and the site can import it.
+type Left = { notBothPriced: { swaps: number }; feeUnreadable: { swaps: number; usd: number }; priceCheck: { swaps: number; usd: number } };
+export type CostParts = {
+  groups: number; swaps: number; grossUsd: number; outUsd: number;
+  allInBps: number | null; appFeeBps: number | null; protocolBps: number | null; spreadBps: number | null; partsGapBps: number | null; left: Left;
 };
-type NearBucket = { appFeeBps: number; nearBps: number; nearShareOfAppFees: number };
+type ByKind = { all: CostParts; tokenDiff: CostParts; transfer: CostParts };
 export type FeeTrace = {
-  asOf: string; from: string; quotes: number; groups: TraceGroup[];
+  from: string; to: string; days: number; gapsInWindow: number;
   protocolFee?: { bps: number; collector: string };
-  nearShare?: { from: string; to: string; days: number; buckets: Record<string, NearBucket> };
+  trace: { days: string[]; bySize: Record<string, ByKind>; allSizes: ByKind };
+  nearRevenue?: { bps: number; from: string; to: string };
+  query?: string;
 };
+const SIZE = 10000;
 const bucketOf = (usd: number) => (usd < 1000 ? '0-1k' : usd < 10000 ? '1k-10k' : usd < 100000 ? '10k-100k' : '100k+');
 const BUCKET_NAME: Record<string, string> = { '0-1k': '$0 to $1k', '1k-10k': '$1k to $10k', '10k-100k': '$10k to $100k', '100k+': 'over $100k' };
 
-const usd = (v: number) => (v < 0.005 ? '< $0.01' : `$${v.toFixed(2)}`);
+const usd = (v: number) => (Math.abs(v) < 0.005 ? '< $0.01' : `${v < 0 ? '−' : ''}$${Math.abs(v).toFixed(2)}`);
 const bps = (v: number) => `${v.toFixed(1)} bps`;
-const utc = (iso: string) => `${new Date(iso).toISOString().slice(0, 10)}, ${new Date(iso).toISOString().slice(11, 16)} UTC`;
+const int = (n: number) => n.toLocaleString('en-US');
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+const dayName = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
-// S2: what a $10,000 ETH to USDC swap costs, from the quote archive. Falls back to the sample if the file is missing.
+// S2: what a $10,000 swap costs, from the realised swaps of the last frozen chain days. Falls back to the sample if the file is missing.
 export function feeView<S extends object>(trace: FeeTrace | null, sampleFee: S) {
-  const g = trace?.groups.find((x) => x.pair === 'ETH-USDC' && x.sizeUsd === 10000);
-  if (!trace || !g || !g.n) return { ...sampleFee, live: false as const, spreadNote: 'About $0.30 Outside the App Fee', spreadSub: 'Solver spread $0.30 and protocol fee under $0.01', explain: 'A $10,000 swap from ETH to USDC costs $20.30. That is 20.3 bps more than the outside price, measured against the Binance mid at the quote time.', asOf: null as string | null };
-  const size = g.sizeUsd;
-  const d = (b: number) => (b / 1e4) * size;
-  const total = d(g.allInBps!);
-  const unexplained = Math.max(g.unexplainedBps!, 0);
-  const protocol = g.protocolBps ?? 0;
-  const asOf = utc(trace.asOf);
-  const b = trace.nearShare?.buckets[bucketOf(size)];
-  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  const bucket = bucketOf(SIZE);
+  const k = trace?.trace?.bySize[bucket];
+  const g = k?.all;
+  if (!trace || !g || g.allInBps == null || g.appFeeBps == null || g.protocolBps == null || g.spreadBps == null) {
+    return { ...sampleFee, live: false as const, spreadNote: 'About $0.30 Outside the App Fee', spreadSub: 'Solver spread $0.30 and protocol fee under $0.01', explain: 'A $10,000 swap from ETH to USDC costs $20.30. That is 20.3 bps more than the outside price, measured against the Binance mid at the quote time.', query: 'Sample from the draft, to be re-run.', asOf: null as string | null };
+  }
+  const d = (b: number) => (b / 1e4) * SIZE;
+  const span = `${dayName(trace.from)} to ${dayName(trace.to)}`;
+  const size = BUCKET_NAME[bucket];
+  const hubShare = g.grossUsd ? k.transfer.grossUsd / g.grossUsd : 0;
+  const td = k.tokenDiff, hub = k.transfer;
+  const left = g.left;
+  const near = trace.nearRevenue;
+  const gap = trace.gapsInWindow ? ` ${trace.gapsInWindow} day${trace.gapsInWindow === 1 ? '' : 's'} in this span could not be read and ${trace.gapsInWindow === 1 ? 'is' : 'are'} left out.` : '';
   return {
     live: true as const,
-    total: usd(total),
-    lead: `${usd(total)} in total, ${bps(g.allInBps!)} below the outside price, quoted with no key. Median of ${g.n} quotes, ${trace.from.slice(0, 10)} to ${trace.asOf.slice(0, 10)}.`,
-    spreadNote: `${usd(d(g.withdrawBps!) + d(protocol) + d(unexplained))} Outside the App Fee`,
-    spreadSub: `Withdraw fee ${usd(d(g.withdrawBps!))}, protocol fee ${usd(d(protocol))} and solver spread ${usd(d(unexplained))}`,
+    total: usd(d(g.allInBps)),
+    lead: `${usd(d(g.allInBps))} in total, ${bps(g.allInBps)} of what goes in, from ${int(g.swaps)} real swaps of ${size} on chain, ${span}.`,
+    spreadNote: `${usd(d(g.protocolBps) + d(g.spreadBps))} Outside the App Fee`,
+    spreadSub: `Protocol fee ${usd(d(g.protocolBps))} and solver spread with price noise ${usd(d(g.spreadBps))}`,
     // share = weight in the bar; minPx keeps a tiny part visible (the bar is not to scale for small parts).
     parts: [
-      { key: 'app', value: usd(d(g.appFeeBps!)), name: `App Fee, ${g.appFeeBps} bps`, share: g.appFeeBps!, minPx: 0, text: 'The default fee, named in every quote and paid to account 5880ad2b…47dd. That account collects fees, but chain data does not show that NEAR owns it (see Open the Query).' },
-      { key: 'withdraw', value: usd(d(g.withdrawBps!)), name: `Withdraw Fee, ${g.withdrawBps!.toFixed(1)} bps`, share: g.withdrawBps!, minPx: 14, text: 'A fixed 0.30 USDC charged for sending the funds out. It is a flat amount, so it weighs most on small swaps.' },
-      { key: 'protocol', value: usd(d(protocol)), name: `Protocol Fee, ${protocol.toFixed(2)} bps`, share: protocol, minPx: 2, text: `Charged by the intents.near contract on the token you send, read from the chain: fee() is 1 pip, which is 0.01 bps, and it has not moved since January 2026. It goes to the contract's fee collector${trace.protocolFee ? `, account ${trace.protocolFee.collector.slice(0, 8)}…${trace.protocolFee.collector.slice(-4)}` : ''}.` },
-      { key: 'unexplained', value: usd(d(unexplained)), name: `Solver Spread, Unexplained Rest, ${bps(unexplained)}`, share: unexplained, minPx: 2, text: 'What is left after the three fees above. It is mostly what the solver keeps, plus any price movement between the Binance mid and the quote. Shown, never hidden.' },
-      b
-        ? { key: 'revenue', value: `${b.nearBps.toFixed(1)} bps`, name: 'NEAR Revenue', share: 0, minPx: 0, text: `Part of the app fee, not on top of it. On executed 1Click swaps of ${BUCKET_NAME[bucketOf(size)]}, ${b.nearBps.toFixed(1)} bps of volume (${pct(b.nearShareOfAppFees)} of their ${b.appFeeBps.toFixed(0)} bps of app fees) is listed by the Explorer as paid to NEAR's revenue wallets, last ${trace.nearShare!.days} days to ${trace.nearShare!.to}. The Explorer's recipient names are labels: on chain, a fee it lists as NEAR's buyback wallet went to 5880ad2b…47dd, the account this quote names, whose owner the chain does not show.` }
-        : { key: 'revenue', value: '—', name: 'NEAR Revenue', share: 0, minPx: 0, text: 'The per-size fee split is not in the published file.' },
-      { key: 'buyback', value: b ? `${b.nearBps.toFixed(1)} bps` : '—', name: 'Buyback', share: 0, minPx: 0, text: "All of NEAR's captured Intents revenue has bought NEAR on the open market since 23 Feb 2026, so the buyback is the NEAR revenue above. The bought NEAR is not burned (DefiLlama methodology)." },
+      { key: 'app', value: usd(d(g.appFeeBps)), name: `App Fee, ${bps(g.appFeeBps)}`, share: Math.max(g.appFeeBps, 0), minPx: 0, text: `The fee a frontend takes, read on chain as a separate transfer from the user to a fee account. Only token_diff swaps show it (${td.appFeeBps != null ? bps(td.appFeeBps) : 'none'} on those). Hub swaps, ${pct(hubShare)} of this USD, show no app fee at all, so any fee they charge sits in the rest below.` },
+      { key: 'withdraw', value: '—', name: 'Withdraw Fee, Not in These Swaps', share: 0, minPx: 0, text: 'Paid when funds leave intents.near for another chain, outside the swap itself, so the chain swaps here do not hold it.' },
+      { key: 'protocol', value: usd(d(g.protocolBps)), name: `Protocol Fee, ${g.protocolBps.toFixed(2)} bps`, share: Math.max(g.protocolBps, 0), minPx: 2, text: `Charged by the intents.near contract on token_diff swaps: fee() is 1 pip, which is 0.01 bps, and it has not moved since January 2026. It goes to the contract's fee collector${trace.protocolFee ? `, account ${trace.protocolFee.collector.slice(0, 8)}…${trace.protocolFee.collector.slice(-4)}` : ''}. Hub swaps pay none.` },
+      { key: 'unexplained', value: usd(d(g.spreadBps)), name: `Solver Spread, Unexplained Rest, ${bps(g.spreadBps)}`, share: Math.max(g.spreadBps, 0), minPx: 2, text: `What is left after the fees above: what the solver or hub kept, any fee the hub charges inside its price, and price movement within the hour (prices are hourly). On token_diff swaps alone it is ${td.spreadBps != null ? bps(td.spreadBps) : 'not measured'}; on hub swaps ${hub.spreadBps != null ? bps(hub.spreadBps) : 'not measured'}. Shown, never hidden.` },
+      near
+        ? { key: 'revenue', value: `${near.bps.toFixed(1)} bps`, name: 'NEAR Revenue', share: 0, minPx: 0, text: `Part of the fees above, not on top of them. DefiLlama books ${near.bps.toFixed(1)} bps of Intents volume as NEAR revenue over the 30 days to ${dayName(near.to)}, all Intents. The chain does not show which fee account is NEAR's, so it can't be traced swap by swap.` }
+        : { key: 'revenue', value: '—', name: 'NEAR Revenue', share: 0, minPx: 0, text: 'The revenue figure is not in the published file.' },
+      { key: 'buyback', value: near ? `${near.bps.toFixed(1)} bps` : '—', name: 'Buyback', share: 0, minPx: 0, text: "All of NEAR's captured Intents revenue has bought NEAR on the open market since 23 Feb 2026, so the buyback is the NEAR revenue above. The bought NEAR is not burned (DefiLlama methodology)." },
     ],
-    bannerText: `Anything the three fees do not explain shows as "unexplained", never hidden. ${trace.quotes} quotes from 4 pairs and 4 sizes, sampled about every 4 hours, so the figure moves with the market.`,
+    bannerText: `Anything the fees do not explain shows as "unexplained", never hidden. Left out and counted: ${int(left.notBothPriced.swaps)} swaps without a price on both sides, ${int(left.feeUnreadable.swaps)} with an app fee paid in a token the swap did not give, ${int(left.priceCheck.swaps)} that failed the price check.${gap}`,
     card: {
-      value: bps(g.allInBps!),
-      label: 'All-In Cost, $10k ETH to USDC',
-      text: `Median of ${g.n} quotes, measured against the Binance mid at the quote time. Range ${g.allInMinBps!.toFixed(1)} to ${g.allInMaxBps!.toFixed(1)} bps.`,
-      source: `Quote archive, latest ${asOf}. Open the Query`,
+      value: bps(g.allInBps),
+      label: `All-In Cost, ${size} Swaps`,
+      text: `USD-weighted over ${int(g.swaps)} swaps, ${span}, against DefiLlama hourly prices. token_diff swaps ${td.allInBps != null ? bps(td.allInBps) : 'not measured'}, hub swaps ${hub.allInBps != null ? bps(hub.allInBps) : 'not measured'}.`,
+      source: `Chain days to ${dayName(trace.to)} 2026. Open the Query`,
     },
-    explain: `A $10,000 swap from ETH to USDC costs ${usd(total)}. That is ${bps(g.allInBps!)} less USDC than the Binance mid says the ETH is worth, median of ${g.n} quotes.`,
-    asOf: trace.asOf,
+    explain: `A $10,000 swap costs about ${usd(d(g.allInBps))}: ${bps(g.allInBps)} less value comes out than goes in, at DefiLlama hourly prices. It is the USD-weighted average of ${int(g.swaps)} real swaps of ${size}, ${span}.`,
+    query: `Query: ${trace.query ?? 'feeTrace in analysis/realised_cost.mjs'}, published as data/published/fee_trace.json. Rules in PREREG.md section 7.`,
+    asOf: trace.to,
   };
 }
-

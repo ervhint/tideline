@@ -61,7 +61,7 @@ export default async function FollowTheFee() {
           card={fee.card}
           href="/reproduce/"
           explain={fee.explain}
-          query={fee.live ? 'Query: traceArchive in analysis/fee_trace.mjs, run over data/quotes/*.jsonl by pipeline/build_fee_trace.mjs, published as data/published/fee_trace.json.' : 'Sample from the draft, to be re-run.'}
+          query={fee.query}
         />
       </div>
       <div className="split-foot">

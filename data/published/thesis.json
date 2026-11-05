@@ -1,6 +1,6 @@
 {
  "asOf": "2026-11-05T11:11:28.278Z",
- "prereg": null,
+ "prereg": "PREREG.md",
  "snapshotLastDay": "2026-11-04",
  "readings": [
   {
@@ -25,11 +25,11 @@
   {
    "id": "Q3",
    "name": "Solver Competition",
-   "side": "Not Measured",
-   "detail": "Top 3 share not available",
-   "plain": "Two numbers: what solvers keep on $1,000 swaps, and how much of the volume the top 3 solvers fill. Bullish under 5 bps and 60%; Bearish over 10 bps or 80%.",
-   "source": "intents.near chain sample; not collected yet",
-   "query": "analysis/readings.mjs q3 → data/snapshot/solvers"
+   "side": "Bearish",
+   "detail": "Spread 53.7 bps, top 3 hold 77%",
+   "plain": "Two numbers: what solvers keep on $1k to $10k swaps, and how much of the volume the top 3 solvers fill. Bullish under 5 bps and 60%; Bearish over 10 bps or 80%.",
+   "source": "intents.near chain days 2026-10-29 to 2026-11-04, DefiLlama hourly prices",
+   "query": "analysis/realised_cost.mjs q3Spread, solverConcentrationChain → data/published/fee_trace.json"
   },
   {
    "id": "Q4",
@@ -52,11 +52,189 @@
  ],
  "verdict": {
   "verdict": "Undecided",
-  "score": 3,
-  "missing": 3
+  "score": 2,
+  "missing": 2
  },
  "concentration": null,
- "solvers": null,
+ "solvers": {
+  "recent": {
+   "days": [
+    "2026-10-29",
+    "2026-10-30",
+    "2026-10-31",
+    "2026-11-01",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04"
+   ],
+   "bySize": {
+    "0-1k": {
+     "usd": 12802489.43,
+     "solvers": 37,
+     "hhi": 3258.950335548882,
+     "top3": 0.7584492714684992,
+     "top": [
+      {
+       "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+       "share": 0.5376198799173694
+      },
+      {
+       "account": "blockzen-1-main.near",
+       "share": 0.16027755595655246
+      },
+      {
+       "account": "solver-priv-liq.near",
+       "share": 0.060551835594577386
+      }
+     ],
+     "sampled": 107265
+    },
+    "1k-10k": {
+     "usd": 46735564.61,
+     "solvers": 29,
+     "hhi": 3388.9242007144953,
+     "top3": 0.7784160464644484,
+     "top": [
+      {
+       "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+       "share": 0.5465799378517446
+      },
+      {
+       "account": "blockzen-1-main.near",
+       "share": 0.16801433837789814
+      },
+      {
+       "account": "solver-priv-liq.near",
+       "share": 0.0638217702348056
+      }
+     ],
+     "sampled": 13369
+    },
+    "10k-100k": {
+     "usd": 102238023.6,
+     "solvers": 21,
+     "hhi": 3423.737938448404,
+     "top3": 0.7747987039611879,
+     "top": [
+      {
+       "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+       "share": 0.5531076964206888
+      },
+      {
+       "account": "blockzen-1-main.near",
+       "share": 0.118190495085366
+      },
+      {
+       "account": "0x8c60fa34790d4661ae4b5302f2a654539352e81b",
+       "share": 0.10350051245513313
+      }
+     ],
+     "sampled": 3540
+    },
+    "100k+": {
+     "usd": 72910432.51,
+     "solvers": 12,
+     "hhi": 3895.4903119769388,
+     "top3": 0.8416627065898066,
+     "top": [
+      {
+       "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+       "share": 0.5946816571696129
+      },
+      {
+       "account": "0x8c60fa34790d4661ae4b5302f2a654539352e81b",
+       "share": 0.1463909660921217
+      },
+      {
+       "account": "solver-priv-liq.near",
+       "share": 0.100590083328072
+      }
+     ],
+     "sampled": 301
+    }
+   },
+   "allSizes": {
+    "usd": 234686510.15,
+    "solvers": 37,
+    "hhi": 3492.901320636629,
+    "top3": 0.7664935773890871,
+    "top": [
+     {
+      "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+      "share": 0.5638787218550335
+     },
+     {
+      "account": "0x8c60fa34790d4661ae4b5302f2a654539352e81b",
+      "share": 0.10240546369412487
+     },
+     {
+      "account": "blockzen-1-main.near",
+      "share": 0.1002093918399287
+     }
+    ]
+   },
+   "tokenDiffOnly": {
+    "usd": 100932272.89,
+    "solvers": 36,
+    "hhi": 1671.720796348178,
+    "top3": 0.6681960371486095,
+    "top": [
+     {
+      "account": "0x8c60fa34790d4661ae4b5302f2a654539352e81b",
+      "share": 0.23811195573549707
+     },
+     {
+      "account": "blockzen-1-main.near",
+      "share": 0.23095297160871117
+     },
+     {
+      "account": "solver-priv-liq.near",
+      "share": 0.19913110980440124
+     }
+    ]
+   },
+   "stability": {
+    "perDayTop3": [
+     {
+      "day": "2026-10-29",
+      "top3": 0.7453982226103476
+     },
+     {
+      "day": "2026-10-30",
+      "top3": 0.7503856793656812
+     },
+     {
+      "day": "2026-10-31",
+      "top3": 0.7773263227771913
+     },
+     {
+      "day": "2026-11-01",
+      "top3": 0.7167326970702705
+     },
+     {
+      "day": "2026-11-02",
+      "top3": 0.7223655660837286
+     },
+     {
+      "day": "2026-11-03",
+      "top3": 0.8368649287564602
+     },
+     {
+      "day": "2026-11-04",
+      "top3": 0.9702486243378488
+     }
+    ],
+    "leaveOneDayOut": {
+     "min": 0.732616061211647,
+     "max": 0.7854761705977462
+    }
+   },
+   "hub": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe"
+  },
+  "beforeSwitch": null,
+  "source": "intents.near chain days 2026-10-29 to 2026-11-04: USD per filler account, token_diff and transfer swaps, the hub as one account",
+  "query": "analysis/realised_cost.mjs solverConcentrationChain → data/published/fee_trace.json"
+ },
  "vstar": {
   "todayUsd": 3997411428,
   "priceUsd": 4.01,
@@ -90,9 +268,9 @@
    "A Bullish reading means the evidence passed a line set in advance, not that the price will rise."
   ],
   "live": [
-   "As of 5 Nov, too little is measured to lean either way.",
-   "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. The DefiLlama figures come from a dataset nobody can re-run for free.",
-   "Not measured yet: Pricing Power, Solver Competition and Largest Integrator.",
+   "As of 5 Nov, the evidence does not reach either line (score +2 of 7; the lines are +3 and -3).",
+   "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. Pointing Bearish: solvers keep a lot or a small group of them dominates. The DefiLlama figures come from a dataset nobody can re-run for free.",
+   "Not measured yet: Pricing Power and Largest Integrator.",
    "Monthly volume would need to reach about 3.4x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.4x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]
  }

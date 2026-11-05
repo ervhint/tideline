@@ -55,9 +55,16 @@ export async function runDay({ day, io, fillersDoc, discover = false, log = cons
   log(`${day}: ${census.size} census transactions from ${fillers.size} fillers`);
 
   const hashes = [...census.keys()].sort();
-  const rows = [];
+  const rows = [], seen = new Set();
   for (let i = 0; i < hashes.length; i += 20) {
-    for (const x of await io.readTxs(hashes.slice(i, i + 20))) rows.push(compactTx(x, census.get(x.transaction?.hash), fillers));
+    // FastNEAR can return a transaction twice in one batch, or one that was not asked for (T3: 4 days read 1 to 6 more than listed).
+    // Only listed transactions count, each once, so no swap is counted twice.
+    for (const x of await io.readTxs(hashes.slice(i, i + 20))) {
+      const h = x.transaction?.hash;
+      if (!census.has(h) || seen.has(h)) continue;
+      seen.add(h);
+      rows.push(compactTx(x, census.get(h), fillers));
+    }
     if ((i / 20) % 250 === 249) log(`${day}: read ${rows.length} of ${hashes.length}`);
   }
   const readShare = hashes.length ? rows.length / hashes.length : 0;

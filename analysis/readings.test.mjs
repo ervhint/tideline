@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { q1, q2, q3, q4, q5, verdict, concentration, largestIntegrator, largestIntegratorBySize, runRates, spreadBps } from './readings.mjs';
+import { q1, q2, q3, q4, q5, verdict, concentration, largestIntegrator, largestIntegratorBySize, runRates } from './readings.mjs';
 
 const B = 'Bullish', N = 'Neutral', R = 'Bearish', M = 'Not Measured';
 
@@ -108,13 +108,6 @@ test('T-6.2 run rates: trailing 90-day revenue at the last day and 30, 60, 90 da
   const sum = (a, b) => series.slice(a, b + 1).reduce((s, x) => s + x.revenue, 0);
   assert.deepEqual(r, [sum(0, 89), sum(30, 119), sum(60, 149), sum(90, 179)]);
   assert.equal(runRates(series.slice(0, 100)), null);
-});
-
-test('T-6.2 spread: median of what the solver keeps on $1,000 quotes in the last 7 days', () => {
-  const g = (sizeUsd, unexplainedBps, sampledAt) => ({ sizeUsd, unexplainedBps, sampledAt });
-  const rows = [g(1000, 2, '2026-10-30T00:00:00Z'), g(1000, 6, '2026-10-31T00:00:00Z'), g(1000, 4, '2026-11-01T00:00:00Z'), g(10000, 99, '2026-11-01T00:00:00Z'), g(1000, 99, '2026-10-01T00:00:00Z')];
-  assert.equal(spreadBps(rows, '2026-11-01T12:00:00Z'), 4);
-  assert.equal(spreadBps([], '2026-11-01T12:00:00Z'), null);
 });
 
 test('largestIntegratorBySize splits by bucket and gives null for an empty one', () => {

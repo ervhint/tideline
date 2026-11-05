@@ -95,16 +95,4 @@ export function runRates(series) {
   return [last - 90, last - 60, last - 30, last].map(sum);
 }
 
-const median = (xs) => {
-  const s = [...xs].sort((a, b) => a - b);
-  const m = s.length >> 1;
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-};
-
-// Median of what the solver keeps (all-in minus app fee and withdraw fee, from fee_trace's traceQuote) on $1,000 quotes in the 7 days to `asOf`.
-// The protocol fee is not visible in a quote, so it stays inside this number (PREREG section 8).
-export function spreadBps(quotes, asOf) {
-  const from = Date.parse(asOf) - 7 * 86_400_000;
-  const xs = quotes.filter((q) => q.sizeUsd === 1000 && Date.parse(q.sampledAt) > from && Date.parse(q.sampledAt) <= Date.parse(asOf)).map((q) => q.unexplainedBps);
-  return xs.length ? median(xs) : null;
-}
+// The Q3 spread comes from realised chain swaps: q3Spread in analysis/realised_cost.mjs (PREREG.md section 8).
