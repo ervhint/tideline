@@ -61,7 +61,8 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - GitHub created no scheduled run of chain-day (03:17 UTC 5 Nov) or attest-days (05:41) at all, and refresh (hourly) ran only 3 times on 5 Nov. Our setup checks out (workflows active, cron lines valid, on the default branch, GitHub status operational), so GitHub is dropping most of our scheduled runs. Not provable from our side.
 - b055627: chain-day has four slots, 03:17, 05:17, 07:17, 09:17 UTC (10:17, 12:17, 14:17, 16:17 WIB); a frozen day exits in seconds. Its commit step now starts again from the branch when another run pushed first. The 09:17 slot on 5 Nov did not fire either.
 - 2026-11-04 frozen by hand: chain-day run 41986747844, 19,817 swaps, $39.1M, 113,495 census transactions (the most so far), committed as c26d47e.
-- Anchoring: `FIRST_DAY_WITH_READINGS` moved to 2026-11-03, so 2 Nov (reached by the backfill on 5 Nov) carries the hash only, like the other late days. The 31 new days (4 Oct to 2 Nov, 4 Nov) are anchored by hand with attest-days; result below.
+- Anchoring: `FIRST_DAY_WITH_READINGS` moved to 2026-11-03, so 2 Nov (reached by the backfill on 5 Nov) carries the hash only, like the other late days. The 31 new days (4 Oct to 2 Nov, 4 Nov) were anchored by hand: attest-days run 42021415887 sent 31; a dry run after it (42021934003) reads all 32 days back from `tideline-thesis.testnet` as "already recorded, matches".
+- Test fix (c3cd1dc): the Data Is Late test pinned the last frozen day to 2026-11-03 and broke once 4 Nov froze; it now only checks thesis.json against `data/chain`. Commit 1fe16fc was pushed with that test failing (a chained command); CI shows it red and c3cd1dc green.
 
 ## Next
 
