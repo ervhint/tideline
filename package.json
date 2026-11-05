@@ -11,7 +11,8 @@
     "attest:check": "node pipeline/attest_check.mjs",
     "attest:send": "node pipeline/attest_send.mjs",
     "elasticity": "node pipeline/build_elasticity.mjs",
-    "refresh": "node pipeline/refresh.mjs"
+    "refresh": "node pipeline/refresh.mjs",
+    "rebuild": "node pipeline/build_chain_days.mjs && node pipeline/build_fee_trace.mjs && node pipeline/build_elasticity.mjs && node pipeline/build_thesis.mjs && node pipeline/build_reconciliation.mjs && node pipeline/build_token_board.mjs"
   },
   "dependencies": {
     "@types/node": "^26.6.6",

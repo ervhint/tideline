@@ -93,9 +93,7 @@ jobs:
           ls "$RUNNER_TEMP/days" 2>/dev/null | wc -l | xargs echo "frozen day files:"
           # Never replace a day already on the branch (a day is written once).
           cp -n "$RUNNER_TEMP/days"/*.jsonl data/chain/ 2>/dev/null || true
-          node pipeline/build_chain_days.mjs
-          node pipeline/build_thesis.mjs
-          node pipeline/build_reconciliation.mjs
+          npm run rebuild
           npm run verify
           node -e "const d=JSON.parse(require('fs').readFileSync('data/published/chain_days.json','utf8'));console.log('frozen days',d.days.length,'gap days',JSON.stringify(d.gaps))" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
@@ -118,7 +116,7 @@ jobs:
             git rebase --abort 2>/dev/null || true
             git reset --hard "origin/$GITHUB_REF_NAME" 2>/dev/null || { git fetch origin "$GITHUB_REF_NAME" && git reset --hard "origin/$GITHUB_REF_NAME"; }
             cp -n "$RUNNER_TEMP/days"/*.jsonl data/chain/ 2>/dev/null || true
-            node pipeline/build_chain_days.mjs && node pipeline/build_thesis.mjs && node pipeline/build_reconciliation.mjs && npm run verify
+            npm run rebuild && npm run verify
             sleep 10
           done
           exit 1

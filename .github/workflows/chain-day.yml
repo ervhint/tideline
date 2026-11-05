@@ -46,9 +46,7 @@ jobs:
         run: node pipeline/chain_day.mjs $DAY
       - name: Rebuild chain_days.json and check it
         run: |
-          node pipeline/build_chain_days.mjs
-          node pipeline/build_thesis.mjs
-          node pipeline/build_reconciliation.mjs
+          npm run rebuild
           npm run verify
       - uses: actions/upload-artifact@v4
         with:
@@ -72,7 +70,7 @@ jobs:
             git fetch origin "$GITHUB_REF_NAME" && git reset --hard "origin/$GITHUB_REF_NAME"
             cp -n "$RUNNER_TEMP/keep"/*.jsonl data/chain/
             cp "$RUNNER_TEMP/keep/fillers.json" data/chain/fillers.json
-            node pipeline/build_chain_days.mjs && node pipeline/build_thesis.mjs && node pipeline/build_reconciliation.mjs && npm run verify
+            npm run rebuild && npm run verify
             sleep 10
           done
           exit 1

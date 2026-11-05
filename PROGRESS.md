@@ -95,6 +95,8 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - Tests: `npm test` 164/164, `tsc --noEmit` clean, `verify` ALL OK (2,037 values, token_board included). Chrome: 8 pages × 4 states plus `?state=few`, `anchored`, `mismatch`, each in a frame exactly 1440 and 375 wide (70 loads): no sideways scroll, nothing past the edge, no broken text, no console errors; the new Method, Concentration, Follow the Fee error and headline text read as intended.
 - Left as is: `analysis/coverage.mjs` and most of `analysis/snapshot.mjs` are Explorer-era code no page uses (only `BUCKETS` is read); `/api/quotes` routes keep their name but serve chain day files; `lib/mock.ts` fallback text still describes the old quote sample (shown only if a published file is missing).
 
+- Found after the T6 push (450740c): chain-day and chain-backfill rebuilt only chain_days, thesis and reconciliation before `verify`, so the next frozen day would fail `verify` on fee_trace (since T4), elasticity (T5) and token_board (T6). Fix: `npm run rebuild` (every derived file, in order) in both workflows. Checked by taking 4 Nov away and putting it back: the old steps give 3 files DIFF, the new ones ALL OK.
+
 ## Next
 
 - **6 Nov, 13:00 WIB:** `gh run list --workflow chain-day.yml`. If a scheduled run froze 2026-11-05 by itself, T2 is closed: write "T2 closed" with the date. If not yet, check again at 19:00 WIB (the last slot is 16:17 WIB, a run takes 1.5 to 2 h). If no slot fired all day, GitHub's scheduler can't be relied on: start the daily run from outside instead (a free cron service or Supabase cron calling the workflow_dispatch API with a token limited to Actions on this repo), with the human's yes. Freeze 2026-11-05 by hand then too.
