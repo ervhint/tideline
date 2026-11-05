@@ -2,7 +2,7 @@
  "rows": [
   {
    "figure": "Monthly Volume Needed at 1.6%",
-   "ours": "$13.6B",
+   "ours": "$13.7B",
    "others": [
     {
      "name": "The draft",
@@ -10,11 +10,11 @@
      "date": "Undated draft, checked 30 Oct 2026"
     }
    ],
-   "why": "NEAR is $4.01 now, not $4.97, and every dollar threshold moves with price."
+   "why": "NEAR is $4.03 now, not $4.97, and every dollar threshold moves with price."
   },
   {
    "figure": "Daily Threshold",
-   "ours": "$447M a day",
+   "ours": "$449M a day",
    "others": [
     {
      "name": "TronWeekly, citing a DefiLlama Pro page",

@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-04T21:58:16.693Z",
+ "asOf": "2026-11-05T02:35:10.279Z",
  "prereg": null,
  "snapshotLastDay": "2026-11-03",
  "readings": [
@@ -59,19 +59,19 @@
  "solvers": null,
  "vstar": {
   "todayUsd": 3970607022,
-  "priceUsd": 4.01,
+  "priceUsd": 4.03,
   "at16": {
-   "low": 12270290981.679628,
-   "mid": 13591180717.936806,
-   "high": 52087710002.49251
+   "low": 12331273069.439987,
+   "mid": 13658727492.218327,
+   "high": 52346580579.18467
   },
   "at25": {
-   "low": 19339580267.847294,
-   "mid": 21421474912.192924,
-   "high": 82097030140.98071
+   "low": 19435960117.649525,
+   "mid": 21528229997.15265,
+   "high": 82506165154.49245
   },
-  "multiple16": 3.422947837101973,
-  "multiple25": 5.3950125997114915
+  "multiple16": 3.439959536801103,
+  "multiple25": 5.421898938341386
  },
  "notes": {
   "llamaLastDay": "2026-11-03",
@@ -84,13 +84,13 @@
   "namesThatChange": []
  },
  "text": {
-  "asOf": "2026-11-04",
+  "asOf": "2026-11-05",
   "fixed": [
    "Tideline asks whether NEAR Intents fees could ever cover the new NEAR being issued. This is research, not financial advice.",
    "A Bullish reading means the evidence passed a line set in advance, not that the price will rise."
   ],
   "live": [
-   "As of 4 Nov, too little is measured to lean either way.",
+   "As of 5 Nov, too little is measured to lean either way.",
    "Pointing Bullish: NEAR's share of fees is 34% over the last 30 days and revenue has risen over each of the last three months. The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power, Solver Competition and Largest Integrator.",
    "Monthly volume would need to reach about 3.4x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.4x if issuance stays at 2.5%, with all revenue spent on buybacks."
