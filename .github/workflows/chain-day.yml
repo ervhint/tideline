@@ -32,7 +32,8 @@ concurrency: chain-day
 jobs:
   freeze:
     runs-on: ubuntu-latest
-    timeout-minutes: 170
+    # The census grew from about 30k transactions a day (late Oct) to 204k (5 Nov), so a day can take hours: GitHub's 6-hour cap, less margin.
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,6 +43,8 @@ jobs:
         env:
           DISCOVER: ${{ inputs.discover && '1' || '' }}
           DAY: ${{ inputs.day }}
+          # Two FastNEAR calls a second (default one). A 429 still waits and tries again, and the run counts them.
+          GAP_MS: '500'
         run: node pipeline/chain_day.mjs $DAY
       - name: Rebuild chain_days.json and check it
         run: |
