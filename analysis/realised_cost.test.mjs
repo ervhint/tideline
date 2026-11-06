@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { costParts, feeTrace, q3Spread, fillerUsd, solverConcentrationChain, MIN_DAY_SWAPS } from './realised_cost.mjs';
+import { TREASURY } from './treasury.mjs';
 
 const row = (o) => ({ t: 'swap', k: 'd', solver: 's1', ref: '1click-lifi', fee: 20, b: '1k-10k', n: 1, np: 1, vol: 1000, in: 1000, out: 990, ...o });
 const day = (d, swaps) => ({ head: { day: d }, swaps });
@@ -90,4 +91,49 @@ test('E3 concentration: HHI and top 3 by hand, the token_diff side figure, and o
   const s = solverConcentrationChain([d1, d2]).stability;
   assert.deepEqual(s.perDayTop3.map((x) => x.day), ['2026-11-01', '2026-11-02']);
   assert.equal(s.perDayTop3[1].top3, 1);
+});
+
+const viaTreasury = (o) => row({ k: 't', solver: TREASURY, ref: '', fee: null, ...o });
+
+test('A2 rule 2: treasury groups are left out of E3, and the figure with the treasury as one account is gone', () => {
+  const d = day('2026-11-01', [viaTreasury({ vol: 9000 }), row({ solver: 'a', vol: 600 }), row({ solver: 'b', vol: 300 }), row({ solver: 'c', vol: 100 })]);
+  const c = solverConcentrationChain([d, day('2026-11-02', [viaTreasury({ vol: 9000 }), row({ solver: 'a', vol: 100 })])]);
+  assert.ok(c.allSizes.top.every((x) => x.account !== TREASURY));
+  assert.equal(c.allSizes.usd, 1100);
+  assert.equal(c.bySize['1k-10k'].usd, 1100);
+  assert.equal(c.bySize['1k-10k'].sampled, 4, 'only public swaps are counted');
+  assert.equal(c.stability.perDayTop3[1].top3, 1);
+  assert.ok(!JSON.stringify(c).includes(TREASURY));
+});
+
+test('A2 rule 2: treasury groups are left out of the Q3 spread, and section 8 minimum swaps count public swaps only', () => {
+  const g = (spread) => row({ fee: 0, n: MIN_DAY_SWAPS, np: MIN_DAY_SWAPS, in: 10000, out: 10000 * (1 - spread / 1e4) });
+  const noise = viaTreasury({ n: 1000, np: 1000, in: 1e6, out: 9e5 });
+  const q = q3Spread([2, 4, 6, 8, 10].map((s, i) => day(`2026-11-0${i + 1}`, [g(s), noise])), 0);
+  assert.ok(Math.abs(q.spreadBps - 6) < 1e-9);
+  const onlyTreasury = q3Spread([1, 2, 3, 4, 5].map((i) => day(`2026-11-0${i}`, [noise])), 0);
+  assert.equal(onlyTreasury.usableDays, 0);
+  assert.equal(onlyTreasury.spreadBps, null);
+});
+
+test('A2 rule 6: the cost split is public swaps only; treasury groups get their own line with the all-in cost and nothing else', () => {
+  const t = feeTrace([day('2026-11-01', [row({ in: 998, out: 990 }), row({ k: 't', solver: 'other-filler', ref: '', fee: null, in: 1000, out: 995 }), viaTreasury({ in: 1000, out: 990 })])], 0.01);
+  const k = t.bySize['1k-10k'];
+  assert.equal(k.all.swaps, 2);
+  assert.equal(k.transfer.swaps, 1, 'a transfer swap through another filler stays public');
+  assert.ok(Math.abs(k.all.grossUsd - 2000) < 1e-9);
+  assert.equal(k.confidential.swaps, 1);
+  assert.equal(k.confidential.inUsd, 1000);
+  assert.ok(Math.abs(k.confidential.allInBps - 100) < 1e-9);
+  for (const f of ['appFeeBps', 'protocolBps', 'spreadBps', 'partsGapBps']) assert.ok(!(f in k.confidential), `${f} must not exist, not even as 0`);
+  assert.equal(t.allSizes.confidential.swaps, 1);
+});
+
+test('A2 rule 6: the price check and unpriced counts still apply on the confidential path', () => {
+  const k = feeTrace([day('2026-11-01', [viaTreasury({ in: 100, out: 50 }), viaTreasury({ n: 3, np: 1, in: 1000, out: 990 })])], 0.01).bySize['1k-10k'].confidential;
+  assert.equal(k.swaps, 1);
+  assert.equal(k.left.priceCheck.swaps, 1);
+  assert.equal(k.left.notBothPriced.swaps, 2);
+  const none = feeTrace([day('2026-11-01', [row({})])], 0.01).bySize['1k-10k'].confidential;
+  assert.equal(none.allInBps, null);
 });

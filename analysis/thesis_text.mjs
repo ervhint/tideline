@@ -21,6 +21,14 @@ const PHRASE = {
 
 const lower = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 const list = (xs) => (xs.length < 3 ? xs.join(' and ') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
+const pct = (x) => `${Math.round(x * 100)}%`;
+
+// A2 rule 4: what is still published on the public swaps of a reading over the private line. It sets nothing.
+const SIDE_FIGURES = {
+  Q3: ({ spreadBps, top3 }) => [spreadBps != null && `spread ${spreadBps.toFixed(1)} bps`, top3 != null && `top 3 solvers hold ${pct(top3)}`],
+  Q4: ({ share, name }) => [share != null && `${name ? `${name} ` : ''}${pct(share)} of visible app fees`],
+};
+const sideFigures = (r) => SIDE_FIGURES[r.id](r.sideFigures).filter(Boolean);
 
 export function thesisText(doc) {
   const { readings, verdict: v, vstar } = doc;
@@ -29,7 +37,9 @@ export function thesisText(doc) {
   const live = [];
 
   // 1. The verdict.
-  if (lean) live.push(`As of ${on}, the evidence leans ${v.verdict}${Math.abs(v.score) === 3 ? ', but only just' : ''}.`);
+  // A2 rule 5: a held score is published, and must not read as if it fell short of a line it may have reached.
+  if (v.held?.length) live.push(`As of ${on}, the verdict is held at Undecided because flow went private. The score is ${signed(v.score)} of 7, but data lost to private flow may not move the verdict, so it stays Undecided until the treasury share falls back to 50% or less.`);
+  else if (lean) live.push(`As of ${on}, the evidence leans ${v.verdict}${Math.abs(v.score) === 3 ? ', but only just' : ''}.`);
   else if (v.missing >= 3) live.push(`As of ${on}, too little is measured to lean either way.`);
   else live.push(`As of ${on}, the evidence does not reach either line (score ${signed(v.score)} of 7; the lines are +3 and -3).`);
 
@@ -49,13 +59,24 @@ export function thesisText(doc) {
   }
 
   // 3. What is still unknown.
-  const missing = readings.filter((r) => r.side === 'Not Measured').map((r) => `${r.name} (${lower(r.detail)})`);
+  const missing = readings.filter((r) => r.side === 'Not Measured' && !r.privateFlow).map((r) => `${r.name} (${lower(r.detail)})`);
+  const gone = readings.filter((r) => r.privateFlow);
   const unknown = [];
   if (missing.length) unknown.push(`Not measured yet: ${list(missing)}.`);
+  if (gone.length) unknown.push(`Not measured because flow went private: ${list(gone.map((r) => `${r.name} (${r.detail.replace('Flow went private: ', '')})`))}.`);
+  const side = gone.flatMap(sideFigures);
+  if (side.length) unknown.push(`On the public swaps left, as side figures that set no reading: ${list(side)}.`);
   if (readings.find((r) => r.id === 'Q1')?.side === 'Neutral') unknown.push('Pricing Power is not settled: the data cannot yet say whether raising a fee helps or hurts revenue.');
   if (unknown.length) live.push(unknown.join(' '));
 
-  // 4. Distance to the threshold (DefiLlama volume).
+  // 4. How much of the flow went private (PREREG A2). The confidential share is a side measure and sets no reading.
+  const pf = doc.privateFlow;
+  if (pf?.q3?.share != null) {
+    const c = pf.confidential?.last7;
+    live.push(`The Confidential Intents treasury, where funds move to a private chain and the swap settles out of public view, carried ${pct(pf.q3.share)} of the USD counted over the last ${pf.q3.days} frozen days${pf.q4?.share != null ? ` and ${pct(pf.q4.share)} over the last ${pf.q4.days}` : ''}.${c?.confidentialShare != null ? ` Other accounts' funds going into it were ${pct(c.confidentialShare)} of the flow we can see over ${c.daysRead} of the last ${c.days} days, a side measure that sets no reading.` : ''}`);
+  }
+
+  // 5. Distance to the threshold (DefiLlama volume).
   if (vstar) {
     const x = (n) => `${n.toFixed(1)}x`;
     live.push(`Monthly volume would need to reach about ${x(vstar.multiple16)} today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or ${x(vstar.multiple25)} if issuance stays at 2.5%, with all revenue spent on buybacks.`);

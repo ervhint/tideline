@@ -1,7 +1,14 @@
-// The five readings and the verdict, exactly as PREREG.md section 6 defines them. Pure: numbers in, sides out.
+// The five readings and the verdict, exactly as PREREG.md section 6 and amendment A2 define them. Pure: numbers in, sides out.
 // Each reading returns { side, detail }. Exactly on a line is Neutral; missing data is Not Measured, never a guess.
 const B = 'Bullish', N = 'Neutral', R = 'Bearish', M = 'Not Measured';
 const pct = (x) => `${(x * 100).toFixed(0)}%`;
+
+// A2 rule 3: over this treasury share of its window, Q3 or Q4 reads Not Measured. Exactly 50% is not over.
+export const PRIVATE_LINE = 0.5;
+const wentPrivate = (share) => share != null && share > PRIVATE_LINE;
+// One decimal when whole percents would hide which side of the line the share is on.
+const shareText = (x) => (pct(x) === pct(PRIVATE_LINE) ? `${(x * 100).toFixed(1)}%` : pct(x));
+const privateFlow = (treasuryShare, sideFigures) => ({ side: M, detail: `Flow went private: treasury ${shareText(treasuryShare)} of USD`, privateFlow: true, treasuryShare, sideFigures });
 
 // Q1: the E1 interval against the -1 line. usable: how many fee changes were usable once the census has run (null before it has).
 export function q1(e1, usable = null) {
@@ -22,8 +29,10 @@ export function q2(days) {
   return { side, capture, detail: `${pct(capture)} last 30 days` };
 }
 
-// Q3: spread (bps, what the solver keeps) and top-3 solver share (0 to 1).
-export function q3({ spreadBps, top3 }) {
+// Q3: spread (bps, what the solver keeps) and top-3 solver share (0 to 1), both on public swaps; treasuryShare of the same 7 days (A2).
+// Over the private line both are kept as side figures and set nothing (A2 rule 4).
+export function q3({ spreadBps, top3, treasuryShare = null }) {
+  if (wentPrivate(treasuryShare)) return privateFlow(treasuryShare, { spreadBps: spreadBps ?? null, top3: top3 ?? null });
   if (spreadBps == null || top3 == null) {
     return { side: M, detail: top3 == null ? 'Top 3 share not available' : 'No spread data' };
   }
@@ -31,8 +40,9 @@ export function q3({ spreadBps, top3 }) {
   return { side, detail: `Spread ${spreadBps.toFixed(1)} bps, top 3 hold ${pct(top3)}` };
 }
 
-// Q4: largest integrator's share of 30-day fees (0 to 1).
-export function q4(share, name) {
+// Q4: largest integrator's share of 30-day fees (0 to 1); treasuryShare of the same 30 days (A2).
+export function q4(share, name, treasuryShare = null) {
+  if (wentPrivate(treasuryShare)) return privateFlow(treasuryShare, { share: share ?? null, name: name ?? null });
   if (share == null) return { side: M, detail: 'Not available' };
   const side = share < 0.5 ? B : share > 0.8 ? R : N;
   return { side, detail: `${name ? name + ' ' : ''}${pct(share)} of visible app fees`.trim() };
@@ -47,12 +57,13 @@ export function q5(rates) {
 }
 
 // Verdict: Bullish +1, Bearish -1, Q1 and Q5 count double. 3 or more Not Measured is Undecided; otherwise +3 or more / -3 or less.
-export function verdict(sides) {
+// held: ids of the readings Not Measured under A2 rule 3. While any is held the verdict is Undecided whatever the score, so a loss of data can't move it (rule 5).
+export function verdict(sides, held = []) {
   const w = [2, 1, 1, 1, 2];
   const score = sides.reduce((s, x, i) => s + (x === B ? w[i] : x === R ? -w[i] : 0), 0);
   const missing = sides.filter((x) => x === M).length;
-  const v = missing >= 3 ? 'Undecided' : score >= 3 ? B : score <= -3 ? R : 'Undecided';
-  return { verdict: v, score, missing };
+  const v = held.length || missing >= 3 ? 'Undecided' : score >= 3 ? B : score <= -3 ? R : 'Undecided';
+  return { verdict: v, score, missing, held };
 }
 
 // Concentration of a list of volumes: HHI on a 0 to 10,000 scale and the top-3 share (0 to 1).

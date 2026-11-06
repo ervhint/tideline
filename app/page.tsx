@@ -14,7 +14,7 @@ export default async function Headline() {
       <div className="wrap below" id="gauge">
         <p className="lead">{headline.verdictText}</p>
         <p className="body">
-          At {sample.price} a NEAR, with all revenue spent on buybacks. {headline.live ? 'Readings that need the chain sample are Not Measured until it is built.' : 'Sample from the draft, not a result.'}
+          At {sample.price} a NEAR, with all revenue spent on buybacks. {headline.live ? headline.privateLine : 'Sample from the draft, not a result.'}
         </p>
         <Gauge
           today={sample.today}

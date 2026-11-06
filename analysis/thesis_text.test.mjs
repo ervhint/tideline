@@ -81,3 +81,50 @@ test('without a V* block the threshold sentence is left out', () => {
   delete d.vstar;
   assert.ok(!thesisText(d).live.join(' ').includes('Monthly volume'));
 });
+
+const heldDoc = (o = {}) => {
+  const sides = ['Not Measured', 'Bullish', 'Not Measured', 'Neutral', 'Bullish'];
+  const d = doc(sides);
+  d.readings[2] = R('Q3', names[2], 'Not Measured', 'Flow went private: treasury 64% of USD', { privateFlow: true, sideFigures: { spreadBps: 10.38, top3: 0.647 } });
+  d.verdict = verdict(sides, ['Q3']);
+  d.privateFlow = { line: 0.5, q3: { days: 7, share: 0.636 }, q4: { days: 30, share: 0.19 }, confidential: null };
+  return { ...d, ...o };
+};
+
+test('A2 rule 5: a held verdict gives the reason and the score, and does not say the score fell short of a line', () => {
+  const t = thesisText(heldDoc()).live.join('\n');
+  assert.match(t, /^As of 1 Nov, the verdict is held at Undecided because flow went private. The score is \+3 of 7/);
+  assert.match(t, /until the treasury share falls back to 50% or less/);
+  assert.doesNotMatch(t, /does not reach either line/);
+  assert.doesNotMatch(t, /leans/);
+});
+
+test('A2 rule 4: a reading gone private is named apart from a reading not measured yet, with its side figures', () => {
+  const t = thesisText(heldDoc()).live.join('\n');
+  assert.match(t, /Not measured yet: Pricing Power/);
+  assert.doesNotMatch(t, /Not measured yet:[^.]*Solver Competition/);
+  assert.match(t, /Not measured because flow went private: Solver Competition \(treasury 64% of USD\)\./);
+  assert.match(t, /as side figures that set no reading: spread 10\.4 bps and top 3 solvers hold 65%\./);
+});
+
+test('A2 rule 4: Q4 gone private keeps its share as a side figure; a missing figure is not invented', () => {
+  const d = heldDoc();
+  d.readings[3] = R('Q4', names[3], 'Not Measured', 'Flow went private: treasury 55% of USD', { privateFlow: true, sideFigures: { share: 0.75, name: 'SwapKit' } });
+  d.readings[2].sideFigures = { spreadBps: null, top3: 0.647 };
+  const t = thesisText(d).live.join('\n');
+  assert.match(t, /top 3 solvers hold 65% and SwapKit 75% of visible app fees\./);
+  assert.doesNotMatch(t, /spread/);
+});
+
+test('A2: the treasury share is stated, and the confidential share only once it has been read', () => {
+  assert.match(thesisText(heldDoc()).live.join('\n'), /carried 64% of the USD counted over the last 7 frozen days and 19% over the last 30\./);
+  assert.doesNotMatch(thesisText(heldDoc()).live.join('\n'), /side measure/);
+  const d = heldDoc();
+  d.privateFlow.confidential = { last7: { days: 7, daysRead: 6, confidentialShare: 0.8 } };
+  assert.match(thesisText(d).live.join('\n'), /Other accounts' funds going into it were 80% of the flow we can see over 6 of the last 7 days, a side measure that sets no reading\./);
+});
+
+test('with no private flow data the text stays as it was', () => {
+  const t = text(['Neutral', 'Bullish', 'Not Measured', 'Neutral', 'Bullish']);
+  assert.doesNotMatch(t, /Confidential Intents|flow went private/);
+});

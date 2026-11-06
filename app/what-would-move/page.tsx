@@ -28,7 +28,7 @@ export default async function WhatWouldMove() {
             <span className="big" key="r">{moves[i][1]}</span>,
           ])}
         />
-        <p className="s-text">Anything between the two lines reads Neutral, and exactly on a line counts as Neutral. Missing data reads Not Measured. Two lines (Q2 and Q4) were set after the current figures were seen; PREREG.md section 1 says so.</p>
+        <p className="s-text">Anything between the two lines reads Neutral, and exactly on a line counts as Neutral. Missing data reads Not Measured. Two lines (Q2 and Q4) were set after the current figures were seen; PREREG.md section 1 says so. Solver Competition reads Not Measured when the Confidential Intents treasury carries over 50% of its last 7 frozen days, and Largest Integrator when it carries over 50% of its last 30. While either is Not Measured for that reason, the verdict stays Undecided whatever the score, so a loss of data cannot move it (PREREG.md amendment A2).</p>
       </div>
     </Page>
   );

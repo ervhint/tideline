@@ -86,6 +86,7 @@ Deadline 14 Nov 23:59 UTC.
 | T4 | **Realised cost.** Q3 spread and Follow the fee from realised swaps; PREREG.md with the not-blind statement | 5h | Cost parts sum within 0.5 bps, remainder shown (INV-4). Done 5 Nov: parts gap 0.00 bps; Q3 Bearish (spread 53.7 bps, top 3 77%) |
 | T5 | **Elasticity on chain** by the §5 route the spike picks; E2 only if it fits | 8h | Elasticity outputs as SRS E1 defines them, or Q1 Not Measured with the reason |
 | T6 | **Wire-up.** Readings, thesis text, method page, every page in Chrome at 1440 and 375 | 6h | V11 unit report rules |
+| T6b | **Confidential shift** (§6b). PREREG A2 in code, treasury day files, site wording | 8h | §6b done list |
 | T7 | **P7.** Vercel, README, video | per workflow | G6 and G7 |
 
 About 32 hours of work plus Actions runtime, which is tight but fits if T1 passes by 6 Nov.
@@ -124,6 +125,29 @@ Three runs of `pipeline/chain_spike.mjs` in Actions (`spike.yml` on the `test` b
 **Run 5** (41825809719, `pipeline/chain_attrib.mjs`): can transfer swaps be named? No. 300 accounts that swapped through the hub, each followed through all its transactions that day (most have 2 to 4): 79% pay no fee to anyone; 19% pay only `609214…`, a fee account shared by SwapKit, LI.FI and unknown swaps, so it names no one; 1% carry a referral (`1click-unknown`); none pay a single-referral fee account. The hub itself pays no fee accounts either. So on chain, **transfer swaps (about 63% of swaps, 74% of USD) can't be named to a frontend.** Any app fee on them, if there is one, isn't a visible transfer.
 
 **Gate as written: not met.** But the count question is mostly answered: chain data finds about the right number of swaps and most of the USD. The open problem is naming the frontend for transfer swaps (Q4, Follow the fee). Decision in §7.
+
+## 6b. T6b plan: the Confidential shift (7 Nov 2026)
+
+PREREG.md amendment A2 is the definition; code that differs is the bug. Why and what was measured: PROGRESS.md, T6b.
+
+**Rules in code (A2 rules 1 to 6).**
+- `analysis/treasury.mjs` (new): the treasury account, the treasury share (rule 1), the treasury day file and the confidential share (rule 8).
+- `analysis/readings.mjs`: Q3 and Q4 take the treasury share of their own window (7 and 30 frozen days) and read Not Measured over 50%, with the side figures kept on the reading (rules 3, 4). `verdict` takes the readings held and answers Undecided, with the score unchanged (rule 5).
+- `analysis/realised_cost.mjs`: treasury groups leave section 5 and section 8 (rule 2). `feeTrace` splits public swaps only and gives treasury groups a `confidential` line with the all-in cost and no app fee or spread field (rule 6).
+- `analysis/thesis_text.mjs`, `lib/thesis_view.ts`, `lib/fee_view.ts`: the hold reason, the side figures, the confidential path. A held score of +3 must not read as "does not reach either line".
+
+**Treasury day files (rule 8).** `data/treasury/<day>.jsonl`, a folder of their own, so nothing that walks `data/chain` (attest, rebuild) sees them. Rows are direction × listed filler or other × token, with raw amount, USD, and counts of priced and unpriced transfers. No account but the treasury is named.
+- Daily: `chain_day.mjs` already reads every treasury transaction for its census, so it writes the treasury file from that same read, with no extra FastNEAR calls. The census is near its time cap (PROGRESS, Watch), so a second read of the same transactions is not affordable. A failure here logs and leaves a treasury gap; it never stops the chain day freezing.
+- Backfill: `pipeline/treasury_day.mjs <day>` lists and reads the treasury's transactions only, with the filler list from that day's `data/chain` header. `treasury-backfill.yml` runs one day per job, 4 Oct on, by hand.
+- `pipeline/build_confidential.mjs` writes `data/published/confidential.json`, in `npm run rebuild`, `refresh` and `verify`. Treasury share per day needs only frozen chain days, so it is live before the backfill; confidential share reads Not Measured until a day's file exists.
+
+**Census split (added 7 Nov, the human's ask).** One runner stops at 300k transactions an account (listing cap) and about 325k read (time cap), and the census was 204k on 5 Nov. `chain-day.yml` now runs a start job, 4 read jobs by block range and a freeze job. Rows are sorted by hash before freezing, so the file does not depend on the split, and a missing part stops the freeze.
+
+**Are the treasury files anchored? No.** They set no reading (rule 8), and everything that sets one still comes from the anchored chain days, the treasury share included. Anchoring would mean new contract keys or a second attest job for a side measure, one week from the deadline, and the files can be re-read from public chain data. The Method page says they are not anchored.
+
+**Site.** Text in existing slots only, no new layout, so nothing here needs a rule 21 question: the home lead and body lines, an existing `s-row` on Follow the Fee for the confidential path, notes on Concentration, What Would Move and Method. A chart of the shift would be a design change and is asked first.
+
+**Done when:** A2 rules 1 to 8 have tests; `npm test`, `verify`, gitleaks and Chrome at 1440 and 375 for every state pass; code review is clean. The backfill can only run once this is on main, which needs the human's command.
 
 ## 7. Decisions for the human
 

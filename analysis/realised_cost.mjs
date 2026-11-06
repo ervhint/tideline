@@ -1,14 +1,14 @@
 // Realised cost and solver concentration from frozen chain days (T4). Pure: parsed day files in, numbers out. No network.
-// Follows PREREG.md section 5 (E3), section 7 (cost parts) and section 8 (Q3 spread).
+// Follows PREREG.md section 5 (E3), section 7 (cost parts), section 8 (Q3 spread) and amendment A2 (the treasury is not a solver, rules 2 and 6).
 // A day is { head, swaps } from parseDayFile in analysis/chain_day.mjs.
 import { concentration } from './readings.mjs';
 import { BUCKETS } from './snapshot.mjs';
+import { isTreasury } from './treasury.mjs';
 
 export const PRICE_BAND = [0.8, 1.25]; // PREREG 7: USD out ÷ USD in outside this is a likely price error
 export const MIN_DAY_SWAPS = 30; // PREREG 8: a day with fewer priced swaps in the bucket is skipped
 export const MIN_DAYS = 5; // PREREG 8: fewer usable days is Not Measured
 export const Q3_BUCKET = '1k-10k';
-export const HUB = '51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 const empty = () => ({ groups: 0, swaps: 0, usd: 0 });
@@ -42,11 +42,21 @@ export function costParts(rows, protocolFeeBps) {
 }
 
 const rowsOf = (days, pick = () => true) => days.flatMap((d) => d.swaps.filter(pick));
+const isPublic = (r) => !isTreasury(r);
 
-// Follow the fee (PREREG 7): the cost split per size bucket and for all sizes, for all swaps and per kind.
+// A2 rule 6: the confidential path, all-in cost only. Any fee on it is hidden on FAR, so it has no app fee, protocol fee or spread field, not even a 0.
+export function confidentialPath(rows) {
+  const { groups, swaps, grossUsd, outUsd, allInBps, left } = costParts(rows, 0);
+  return { groups, swaps, inUsd: grossUsd, outUsd, allInBps, left };
+}
+
+// Follow the fee (PREREG 7, A2 rule 6): the cost split per size bucket and for all sizes, on public swaps and per kind, with treasury groups on their own line.
 export function feeTrace(days, protocolFeeBps) {
   const kinds = { all: () => true, tokenDiff: (r) => r.k === 'd', transfer: (r) => r.k === 't' };
-  const of = (pick) => Object.fromEntries(Object.entries(kinds).map(([k, f]) => [k, costParts(rowsOf(days, (r) => pick(r) && f(r)), protocolFeeBps)]));
+  const of = (pick) => ({
+    ...Object.fromEntries(Object.entries(kinds).map(([k, f]) => [k, costParts(rowsOf(days, (r) => isPublic(r) && pick(r) && f(r)), protocolFeeBps)])),
+    confidential: confidentialPath(rowsOf(days, (r) => isTreasury(r) && pick(r))),
+  });
   return {
     days: days.map((d) => d.head.day),
     bySize: Object.fromEntries(BUCKETS.map((b) => [b, of((r) => r.b === b)])),
@@ -60,10 +70,10 @@ const median = (xs) => {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 };
 
-// Q3 spread (PREREG 8): median of the daily spreads in the $1k–10k bucket over the days given (the last 7).
+// Q3 spread (PREREG 8, A2 rule 2): median of the daily spreads in the $1k–10k bucket over the days given (the last 7), treasury groups left out.
 export function q3Spread(days, protocolFeeBps) {
   const perDay = days.map((d) => {
-    const c = costParts(d.swaps.filter((r) => r.b === Q3_BUCKET), protocolFeeBps);
+    const c = costParts(d.swaps.filter((r) => r.b === Q3_BUCKET && isPublic(r)), protocolFeeBps);
     const usable = c.swaps >= MIN_DAY_SWAPS && c.spreadBps != null;
     return { day: d.head.day, swaps: c.swaps, spreadBps: c.spreadBps, allInBps: c.allInBps, appFeeBps: c.appFeeBps, usable };
   });
@@ -89,14 +99,14 @@ function shareOf(usd) {
   return { usd: r2(total), solvers: usd.size, hhi: c.hhi, top3: c.top3, top };
 }
 
-// E3 over the days given (PREREG 5): per bucket and all sizes, with the token_diff-only side figure and how much one day moves it.
+// E3 over the days given (PREREG 5, A2 rule 2): per bucket and all sizes, treasury groups left out, with the token_diff-only side figure and how much one day moves it.
 export function solverConcentrationChain(days) {
-  const rows = rowsOf(days);
+  const rows = rowsOf(days, isPublic);
   const bySize = Object.fromEntries(BUCKETS.map((b) => {
     const rs = rows.filter((r) => r.b === b);
     return [b, { ...shareOf(fillerUsd(rs)), sampled: rs.reduce((t, r) => t + r.n, 0) }];
   }));
-  const top3 = (ds) => shareOf(fillerUsd(rowsOf(ds))).top3;
+  const top3 = (ds) => shareOf(fillerUsd(rowsOf(ds, isPublic))).top3;
   return {
     days: days.map((d) => d.head.day),
     bySize,

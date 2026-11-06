@@ -6,6 +6,7 @@ name: chain-backfill
 # Every day uses the filler list committed on the branch as it is. No discovery runs, so the list never changes here and older days
 # can miss a solver that has since left (each day file names the list it used).
 # A day that cannot be read well stays a gap: its step logs NOT FROZEN, nothing is written, and the run does not go back to fill it.
+# chain_day.mjs also writes data/treasury/<day>.jsonl, which this workflow does not keep: run treasury-backfill for those days afterwards.
 # One last job copies all frozen days in, rebuilds the derived files, runs `npm run verify`, and commits once (only if `commit` is on).
 on:
   workflow_dispatch:

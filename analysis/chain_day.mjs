@@ -91,8 +91,14 @@ export function groupSwaps(swaps, usdAt) {
 
 export const digestOf = (hashes) => createHash('sha256').update([...hashes].sort().join('\n')).digest('hex');
 
+// The decimals and hourly prices a file's USD figures used, as its last lines.
+export const bookLines = ({ decimals = [], prices = [] } = {}) => [
+  ...[...decimals].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([token, d]) => ({ t: 'dec', token, d })),
+  ...[...prices].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([key, price]) => { const [hour, id] = key.split('|'); return { t: 'price', hour: Number(hour), id, price }; }),
+];
+
 // Builds the day file text. meta: { day, fillers: [account], settlementTxs, listed, read, hashes (the read transactions), swapsCapped }.
-export function dayFile({ day, fillers, settlementTxs = null, listed, read, hashes }, swaps, usdAt, { decimals = [], prices = [] } = {}) {
+export function dayFile({ day, fillers, settlementTxs = null, listed, read, hashes }, swaps, usdAt, book) {
   const { swapRows, routeRows } = groupSwaps(swaps, usdAt);
   const count = (k) => swapRows.filter((r) => r.k === k).reduce((t, r) => t + r.n, 0);
   const head = {
@@ -100,9 +106,7 @@ export function dayFile({ day, fillers, settlementTxs = null, listed, read, hash
     census: { listed, read, readShare: listed ? Math.round((read / listed) * 1e5) / 1e5 : 0, digest: digestOf(hashes) },
     swaps: { diff: count('d'), transfer: count('t') },
   };
-  const lines = [head, ...swapRows, ...routeRows,
-    ...[...decimals].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([token, d]) => ({ t: 'dec', token, d })),
-    ...[...prices].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([key, price]) => { const [hour, id] = key.split('|'); return { t: 'price', hour: Number(hour), id, price }; })];
+  const lines = [head, ...swapRows, ...routeRows, ...bookLines(book)];
   return lines.map((l) => JSON.stringify(l)).join('\n') + '\n';
 }
 
