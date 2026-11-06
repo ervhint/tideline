@@ -109,7 +109,9 @@ Changes to the design reference that the human asked for (rule 21: asked, not in
 - Footnote on every page: one bold line, "Tideline is research, not financial advice." The "sample" sentence is gone; every published file exists, and a missing one still labels its own fallback figures as sample.
 - Follow the Fee: the neutral banner under the cost card spans the full row. The number card is not sticky (tried, the human said no).
 - Tried and undone: a glossier finish on the verdict panel; two columns for What This Means.
-- Tests: `npm test` 164/164, `tsc --noEmit` clean, gitleaks clean on app and components. Chrome: home and Follow the Fee seen at the human's window, 1366 × 633, which is the compact landscape layout. Not seen: 1440 at full height, 1920 × 1080 (by arithmetic the header Open Model clears the nav pill by about 16 px), and 375 (Chrome would not resize the viewport). Those checks go into the T7 pass.
+- Tests: `npm test` 164/164, `tsc --noEmit` clean, gitleaks clean on app and components. Chrome, each in a frame exactly that size: home at 1920 × 1080 (header Open Model clears the nav pill by 23 px and GitHub Repo by 18 px), 1440 × 900 (16:10, so Open Model stays in the hero), 1366 × 633 and 375 × 812; Follow the Fee at 1440 × 900 and 375 × 812. No sideways scroll, footnote one line, banner edges match the cards, number card not sticky.
+- Found at 375 and fixed: with the subtitle on one line the mobile panel had a gap above the scale; panel 170 tall (was 212), scale and bar moved up 42.
+- Open: on 16:10 laptops (1440 × 900, 1280 × 800) the header has about 168 px free between the nav pill and GitHub Repo, less than the 216 px button, so Open Model stays in the hero there.
 
 ## Next
 
