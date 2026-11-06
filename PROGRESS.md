@@ -122,3 +122,27 @@ Changes to the design reference that the human asked for (rule 21: asked, not in
 - **Pick up here (next chat):** `gh run view 42212389651` (the 5 Nov rerun; read its summary for minutes and 429s). If it passed: 2026-11-05 is on main; check `npm run verify` ALL OK after `git pull`, and that `chain_days.json`, `fee_trace.json`, `elasticity.json` and `token_board.json` now end on 2026-11-05 (first real day for `npm run rebuild`). Then start attest-days by hand (`gh workflow run attest-days.yml --ref main -f dry_run=false`, the human's yes, 6 Nov) and confirm 2026-11-05 reads "matches" on the contract. If the freeze failed, read the log, fix, and run it again by hand. Then 7 Nov: the 10:17 WIB cron run should freeze 2026-11-06 and 12:41 anchor it with no hand step; when it does, write "T2 closed" with the date.
 - **Then T7** (P7: test → G6, ship → G7), only once T2 is confirmed working (the human, 5 Nov). LICENSE file (MIT) is part of T7.
 - Still open from PLAN §7: a paid FastNEAR key, recommended no.
+
+## T6b Confidential shift: decided, not built (6 Nov 2026)
+
+Comes before T7. Run on Opus 5.5 medium (the human's choice): plan in docs/PLAN.md, build, then review. The rules are PREREG.md amendment A2 (0f7366f, the human's yes): read it first; it is the definition, and code that differs is the bug.
+
+**Why.** The hub `51e8f94d…7cbe` is the Confidential Intents treasury (`PRIVATE_TREASURY_ACCOUNT_ID` in docs.near-intents.org/integration/market-makers/confidential-intents and confidential-example). A transfer in shields funds to FAR, a private NEAR fork (`intents.far`, no public RPC); the swap settles there; a transfer out unshields. Email from NEAR Intents, 6 Nov: private relay opens to all solvers on Mon 9 Nov and becomes the main path; public intents wind down later, no date. The email is the only source for those two points.
+
+**Measured 6 Nov (keyless FastNEAR and DefiLlama; scripts were throwaway, not in the repo):**
+- Treasury share of counted USD: about 1% mid Oct (27% on 21 Oct, 15% on 22 Oct), 41% 29 Oct, 70% 3 Nov, 93% 4 Nov, 97% 5 Nov. token_diff USD: $28.0M 28 Oct, $9.2M 3 Nov, $2.6M 4 Nov, $0.46M 5 Nov.
+- 200 treasury transactions: all signed by `intents.near`, method `execute_intents`; 118 of 118 transfers in carry a 184-character encrypted memo, 0 of 119 out do. In and out tokens differ.
+- 30 minutes on 6 Nov (1,966 transactions, 859 accounts): $3.55M in, $3.71M out, 459 of 2,816 flows unpriced. Listed fillers are $1.29M of the in side (`solver-priv-liq.near` alone $0.99M, 383 transfers in, 374 out). Other accounts: $2.26M in, about $108M a day if typical, against $32.7M counted for 5 Nov. Only about 20% of their USD in came from an account also getting funds back in the window, though the short window hides some pairs. Rough; one sample.
+- DefiLlama: volume steady, about $130M a day. Fees flat, about $205k a day. Revenue ÷ fees 35.0% for 7 to 28 Oct, 25.9% for 29 Oct to 5 Nov. If that holds, Q2's 30-day figure crosses under 30% around 15 Nov (Bullish to Neutral). The link to this shift is not proven, and how DefiLlama counts private volume is not known.
+
+**The human's decisions:** over the 50% line, Q3 and Q4 read Not Measured and the verdict holds at Undecided; confidential share backfilled to 4 Oct in new files, frozen days untouched.
+
+**To build:**
+1. `readings.mjs`, `realised_cost.mjs`, `build_fee_trace.mjs`, `build_thesis.mjs`: A2 rules 1 to 6, with tests. Expected at once: Q3 Not Measured, verdict Undecided on the hold, score +3. Q4 crosses later. These are expectations, not computed results.
+2. New treasury day files and job (A2 rule 8), read from the treasury's transactions only; a backfill to 4 Oct; wired into chain-day or its own workflow, `npm run rebuild` and `verify`. Decide in the plan whether their hashes are anchored (A2 does not say).
+3. Site: hub wording in `app/method/page.tsx`, `lib/fee_view.ts`, `lib/thesis_view.ts`; confidential path line on Follow the Fee; the verdict hold reason on the home page; the confidential share. Any design change is asked first (rule 21). README and THESIS_DRAFT.md: make the shift a headline finding.
+4. Checks: `npm test`, `verify`, Chrome at 1440 and 375 for every state, code review.
+
+**Watch:** the 5 Nov freeze read 203,929 transactions in 219.59 min with 1,303 429s; the 350 min cap is reached at about 325k. If treasury traffic grows after 9 Nov, see the census note in Next.
+
+**Cron status (6 Nov):** the 5 Nov freeze came from the hand rerun 42212389651, not the cron. refresh runs hourly from cron-job.org. chain-day's first real cron run is 03:17 UTC 7 Nov (6 Nov data); 5 Nov is not anchored yet, due 05:41 UTC 7 Nov.
