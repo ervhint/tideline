@@ -17,15 +17,13 @@ What it can do: start, re-run, cancel and delete workflow runs on this one repo.
 
 ## 2. The jobs on cron-job.org
 
-Make a free account, then one cronjob per row. Time zone: **UTC** (set it in each job, or the account).
+Set up on 6 Nov 2026: three cronjobs, time zone **Asia/Jakarta (WIB)**, each with a custom crontab that holds both of its daily times.
 
-| Title | Schedule (UTC) | WIB | Workflow file | Body |
+| Title | Crontab (WIB) | Times WIB (UTC) | Workflow file | Body |
 | --- | --- | --- | --- | --- |
-| tideline chain-day | 03:17 every day | 10:17 | `chain-day.yml` | `{"ref":"main","inputs":{"commit":"true"}}` |
-| tideline chain-day retry | 06:17 every day | 13:17 | `chain-day.yml` | `{"ref":"main","inputs":{"commit":"true"}}` |
-| tideline attest-days | 05:41 every day | 12:41 | `attest-days.yml` | `{"ref":"main","inputs":{"dry_run":"false"}}` |
-| tideline attest-days late | 08:41 every day | 15:41 | `attest-days.yml` | `{"ref":"main","inputs":{"dry_run":"false"}}` |
-| tideline refresh | minute 23 of every hour | :23 | `refresh.yml` | `{"ref":"main","inputs":{"dry_run":"false"}}` |
+| tideline chain-day | `17 10,13 * * *` | 10:17 (03:17), retry 13:17 (06:17) | `chain-day.yml` | `{"ref":"main","inputs":{"commit":"true"}}` |
+| tideline attest-days | `41 12,15 * * *` | 12:41 (05:41), late 15:41 (08:41) | `attest-days.yml` | `{"ref":"main","inputs":{"dry_run":"false"}}` |
+| tideline refresh | `23 * * * *` | every hour at :23 | `refresh.yml` | `{"ref":"main","inputs":{"dry_run":"false"}}` |
 
 For every job, under **Advanced**:
 
