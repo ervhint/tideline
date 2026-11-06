@@ -2,7 +2,7 @@
  "rows": [
   {
    "figure": "Monthly Volume Needed at 1.6%",
-   "ours": "$12.6B",
+   "ours": "$12.7B",
    "others": [
     {
      "name": "The draft",
@@ -10,11 +10,11 @@
      "date": "Undated draft, checked 30 Oct 2026"
     }
    ],
-   "why": "NEAR is $3.69 now, not $4.97, and every dollar threshold moves with price."
+   "why": "NEAR is $3.70 now, not $4.97, and every dollar threshold moves with price."
   },
   {
    "figure": "Daily Threshold",
-   "ours": "$415M a day",
+   "ours": "$416M a day",
    "others": [
     {
      "name": "TronWeekly, citing a DefiLlama Pro page",
@@ -26,7 +26,7 @@
   },
   {
    "figure": "Buyback Share",
-   "ours": "100% of revenue (DefiLlama); $6.68M of revenue from 23 Feb to 18 Oct 2026",
+   "ours": "97% of revenue (DefiLlama); $6.68M of revenue from 23 Feb to 18 Oct 2026",
    "others": [
     {
      "name": "Altcoin Buzz, citing DefiLlama and NearBlocks",
