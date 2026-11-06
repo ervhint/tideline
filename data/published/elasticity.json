@@ -1,19 +1,19 @@
 {
- "asOf": "2026-11-04T23:59:59Z",
+ "asOf": "2026-11-05T23:59:59Z",
  "source": "intents.near token_diff swaps on frozen chain days (data/chain)",
  "prereg": "PREREG.md sections 3 and 4, committed 5 Nov 2026 (bfda0f2)",
  "seed": 20261101,
  "reps": 10000,
  "from": "2026-10-04",
- "to": "2026-11-04",
- "daysRead": 32,
+ "to": "2026-11-05",
+ "daysRead": 33,
  "leftOutDays": [
   "2026-10-04"
  ],
  "census": {
-  "frontends": 356,
+  "frontends": 358,
   "withStableRun": 37,
-  "changes": 18,
+  "changes": 19,
   "events": [],
   "nearMisses": [
    {
@@ -40,7 +40,7 @@
   "e2BucketEvents": 0
  },
  "checks": {},
- "notMeasured": "No fee change passes the PREREG.md section 3 rules in the 32 frozen days: a frontend must hold one rate for 7 days, then another rate at least 5 bps away for 7 days.",
+ "notMeasured": "No fee change passes the PREREG.md section 3 rules in the 33 frozen days: a frontend must hold one rate for 7 days, then another rate at least 5 bps away for 7 days.",
  "notRun": [
   "E1, E2 and their checks: no estimate without at least 3 usable fee changes (PREREG.md section 3)"
  ],
