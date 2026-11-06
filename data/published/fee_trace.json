@@ -665,7 +665,7 @@
   "hub": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe"
  },
  "nearRevenue": {
-  "bps": 4.9763518730952025,
+  "bps": 4.978810522748264,
   "from": "2026-10-07",
   "to": "2026-11-05",
   "source": "DefiLlama revenue ÷ volume, all Intents (data/published/model_inputs.json)",
