@@ -1,11 +1,9 @@
 name: attest-days
 
 # Writes each finished chain day to the testnet contract. It only reads the repo and
-# commits nothing. GitHub runs schedules late, so several chances a day; re-runs are safe.
+# commits nothing. Started by cron-job.org through the API (dry_run false) after chain-day has frozen yesterday; GitHub's own
+# schedule dropped most runs, so it is not used. Days already recorded are skipped, so re-runs are safe.
 on:
-  schedule:
-    # After chain-day (03:17 UTC, about 95 min) has frozen yesterday. Days already recorded are skipped.
-    - cron: '41 5,8,12 * * *'
   workflow_dispatch:
     inputs:
       dry_run:

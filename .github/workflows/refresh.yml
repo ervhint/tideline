@@ -1,11 +1,10 @@
 name: refresh
 
 # Pulls DefiLlama and the model inputs, rebuilds data/published/, records side changes in alarm/history.json.
-# It commits only when a number changed, and only after `npm run verify` passes. GitHub runs schedules late.
+# It commits only when a number changed, and only after `npm run verify` passes. Started every hour by cron-job.org
+# through the API (dry_run false); GitHub's own schedule dropped most runs, so it is not used.
 # Telegram goes out after the push, so a failed push never sends a message. Without the two Telegram secrets it prints the message.
 on:
-  schedule:
-    - cron: '23 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:

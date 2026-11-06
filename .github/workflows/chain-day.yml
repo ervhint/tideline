@@ -1,15 +1,14 @@
 name: chain-day
 
 # T2 (docs/PLAN.md §6): freezes one finished UTC day of intents.near swaps into data/chain/<day>.jsonl (about 80 to 95 min).
-# Keyless public reads only (FastNEAR, NEAR RPC, DefiLlama). Every day at 03:17 UTC it freezes yesterday; GitHub runs schedules late
-# and drops some, so 05:17, 07:17 and 09:17 are further chances. A slot that finds yesterday frozen stops in seconds.
+# Keyless public reads only (FastNEAR, NEAR RPC, DefiLlama). cron-job.org starts it through the API every day
+# (commit true) to freeze yesterday, with a later second chance; a run that finds yesterday frozen stops in seconds. GitHub's own
+# schedule dropped most runs, so it is not used.
 # A day is written once and never changed. A day that cannot be read well stays a gap, the run fails and Telegram says so; the next
 # run does not go back and fill it in.
 # It commits only after `npm run verify` passes. By hand, `commit` decides (default off: the files are uploaded as an artifact).
 # DISCOVER on looks for new solvers and hubs today; otherwise that happens once a week.
 on:
-  schedule:
-    - cron: '17 3,5,7,9 * * *'
   workflow_dispatch:
     inputs:
       day:
@@ -55,7 +54,7 @@ jobs:
             data/chain/
             data/published/chain_days.json
       - name: Commit
-        if: github.event_name == 'schedule' || inputs.commit
+        if: inputs.commit
         run: |
           git config user.name "tideline-chain"
           git config user.email "tideline-chain@users.noreply.github.com"
@@ -75,7 +74,7 @@ jobs:
           done
           exit 1
       - name: Tell Telegram the day was not frozen
-        if: failure() && github.event_name == 'schedule'
+        if: failure() && inputs.commit
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

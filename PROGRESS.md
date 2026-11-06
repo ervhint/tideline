@@ -59,6 +59,7 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 ## T2: daily freeze works by hand; the schedule is not proven (5 Nov 2026)
 
 - GitHub created no scheduled run of chain-day (03:17 UTC 5 Nov) or attest-days (05:41) at all, and refresh (hourly) ran only 3 times on 5 Nov. Our setup checks out (workflows active, cron lines valid, on the default branch, GitHub status operational), so GitHub is dropping most of our scheduled runs. Not provable from our side.
+- Likely cause (the human, 5 Nov): the 2,000 free Actions minutes ran out (the backfill) before the repo went public at about 07:20 UTC. Fits the record: before 07:20 only refresh at 02:34 ran; after it, scheduled refresh (11:11) and attest-days (13:28) did start. The 09:17 chain-day slot still did not, and refresh ran only twice in 8 hours, so GitHub also skips some scheduled runs; the four slots cover that.
 - b055627: chain-day has four slots, 03:17, 05:17, 07:17, 09:17 UTC (10:17, 12:17, 14:17, 16:17 WIB); a frozen day exits in seconds. Its commit step now starts again from the branch when another run pushed first. The 09:17 slot on 5 Nov did not fire either.
 - 2026-11-04 frozen by hand: chain-day run 41986747844, 19,817 swaps, $39.1M, 113,495 census transactions (the most so far), committed as c26d47e.
 - Anchoring: `FIRST_DAY_WITH_READINGS` moved to 2026-11-03, so 2 Nov (reached by the backfill on 5 Nov) carries the hash only, like the other late days. The 31 new days (4 Oct to 2 Nov, 4 Nov) were anchored by hand: attest-days run 42021415887 sent 31; a dry run after it (42021934003) reads all 32 days back from `tideline-thesis.testnet` as "already recorded, matches".
@@ -101,5 +102,7 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 ## Next
 
 - **6 Nov, 13:00 WIB:** `gh run list --workflow chain-day.yml`. If a scheduled run froze 2026-11-05 by itself, T2 is closed: write "T2 closed" with the date. If not yet, check again at 19:00 WIB (the last slot is 16:17 WIB, a run takes 1.5 to 2 h). If no slot fired all day, GitHub's scheduler can't be relied on: start the daily run from outside instead (a free cron service or Supabase cron calling the workflow_dispatch API with a token limited to Actions on this repo), with the human's yes. Freeze 2026-11-05 by hand then too.
-- **Then T6** (wire-up).
+- **6 Nov check result:** no chain-day slot fired on 6 Nov by 08:14 UTC; since going public GitHub started about 4 of 24 refresh runs and 1 chain-day run (8 h late). Our setup is correct. The human chose: start the jobs from cron-job.org (docs/CRON.md), remove the GitHub schedules (done in the workflow files, not yet pushed), and let the new cron's first run freeze 2026-11-05.
+- **After the cron is set up:** confirm the chain-day run passed `npm run rebuild` + `verify` on a new day (first run since the fix), that `chain_days.json`, `fee_trace.json`, `elasticity.json` and `token_board.json` moved to the new day, and that attest-days anchored it.
+- **Then T7** (P7: test → G6, ship → G7), only once T2 is confirmed working (the human, 5 Nov). LICENSE file (MIT) is part of T7.
 - Still open from PLAN §7: a paid FastNEAR key, recommended no.
