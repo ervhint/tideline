@@ -5,6 +5,8 @@ import { Stale } from './Stale';
 // S1's first screen, measured from DESIGN-REFERENCE-3.md: every position is the reference's --x, --y and --sx.
 const at = (x: number, y: number, sx?: number) => ({ '--x': x, '--y': y, ...(sx ? { '--sx': sx } : {}) }) as CSSProperties;
 const METER_MAX = 30e9;
+// Same colours as the reading dots; Undecided matches Neutral.
+const VERDICT_COLOR: Record<string, string> = { Bullish: 'var(--bullish)', Bearish: 'var(--bearish)', Undecided: 'var(--neutral)' };
 const Chevron = () => (
   <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="m6.6 3.6 6 5.4-6 5.4" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
@@ -29,10 +31,12 @@ export function Hero({ asOf, live, multiple, today, gapTo, gapCaption, verdict }
             <span className="hx-tag l c sx" style={at(131, 48.7, 0.8973)}>before buybacks cover 1.6% issuance.</span>
           </div>
           <aside className="hx-panel l c r" style={at(58, -165)}>
-            <span className="p-title sx" style={{ '--sx': 0.8707 } as CSSProperties}>{verdict}</span>
-            <span className="dot" />
+            <span className="p-head sx" style={{ '--sx': 0.8707 } as CSSProperties}>
+              <span className="p-title">{verdict}</span>
+              <span className="dot" style={{ background: VERDICT_COLOR[verdict] ?? 'var(--neutral)' }} />
+            </span>
             <span className="ring"><img src="/assets/mark.svg" alt="" width={30} height={30} /></span>
-            <p className="p-sub sx" style={{ '--sx': 0.8899 } as CSSProperties}>Volume<br />Today<br />Per Month</p>
+            <p className="p-sub sx" style={{ '--sx': 0.8899 } as CSSProperties}>Volume Today Per Month</p>
             <div className="hx-scale num"><span>$0</span><span>$10B</span><span>$20B</span><span>$30B</span></div>
             <div className="hx-track" role="img" aria-label={`Today ${bn(today, 2)} on a scale to ${bn(METER_MAX, 0)}`}>
               <i style={{ width: `${Math.min(100, (today / METER_MAX) * 100)}%` }} />

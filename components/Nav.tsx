@@ -76,7 +76,14 @@ export function Nav() {
           </svg>
           {after.map(item)}
         </nav>
-        <a className="cta" href={REPO} onClick={() => setOpen(false)}>
+        {path === '/' && (
+          <a className="meet hd-meet" href="/model/" onClick={() => setOpen(false)}>
+            <span className="thumb"><img alt="" style={{ objectPosition: '60% 50%' }} src="/media/sphere-poster.png" /></span>
+            <b>Open Model</b>
+            <span className="hx-knob"><Chevron /></span>
+          </a>
+        )}
+        <a className="cta" href={REPO} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
           <span className="cta-text">GitHub Repo</span>
           <span className="hx-knob"><Chevron /></span>
         </a>

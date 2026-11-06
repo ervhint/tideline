@@ -15,9 +15,6 @@ export function Page({ title, lead, children }: { title: string; lead?: ReactNod
 
 export function Footnote() {
   return (
-    <p className="footnote">
-      Readings and figures marked &quot;sample&quot; come from the draft and are not results. Tideline is research, not
-      financial advice.
-    </p>
+    <p className="footnote">Tideline is research, not financial advice.</p>
   );
 }

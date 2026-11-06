@@ -99,6 +99,18 @@ Follow the Fee, Elasticity and Concentration, and the Method page's spot-check a
 - Found after the T6 push (450740c): chain-day and chain-backfill rebuilt only chain_days, thesis and reconciliation before `verify`, so the next frozen day would fail `verify` on fee_trace (since T4), elasticity (T5) and token_board (T6). Fix: `npm run rebuild` (every derived file, in order) in both workflows. Checked by taking 4 Nov away and putting it back: the old steps give 3 files DIFF, the new ones ALL OK.
 - Same gap in `refresh.mjs`: the hand run 42056366366 (5 Nov) failed verify on fee_trace.json (it reads model_inputs, which refresh updates) and committed nothing; every scheduled refresh since T4 would have failed the same way. refresh now rebuilds every derived file in the rebuild order.
 
+## Polish while waiting for data (6 Nov 2026, the human's asks)
+
+Changes to the design reference that the human asked for (rule 21: asked, not inferred):
+- Hero verdict panel: 350 wide (was 275) and 236 tall (was 271), so "Volume Today Per Month" is one line; logo ring moved right with it; scale and bar 256 wide. The verdict dot now sits right after the verdict word (title and dot share `.p-head`, so it follows any word) and takes the reading colours: Bullish `--bullish`, Bearish `--bearish`, Undecided `--neutral`.
+- Open Model moves into the header beside GitHub Repo, home page only, on 16:9 and wider screens at least 900 px wide (smaller: 230 × 70). Elsewhere it stays in the hero's bottom right. Entrance animates both.
+- GitHub Repo opens in a new tab (`noopener noreferrer`).
+- Home: What This Means sits in the same glass card as the gauge and readings, one column, full width.
+- Footnote on every page: one bold line, "Tideline is research, not financial advice." The "sample" sentence is gone; every published file exists, and a missing one still labels its own fallback figures as sample.
+- Follow the Fee: the neutral banner under the cost card spans the full row. The number card is not sticky (tried, the human said no).
+- Tried and undone: a glossier finish on the verdict panel; two columns for What This Means.
+- Tests: `npm test` 164/164, `tsc --noEmit` clean, gitleaks clean on app and components. Chrome: home and Follow the Fee seen at the human's window, 1366 × 633, which is the compact landscape layout. Not seen: 1440 at full height, 1920 × 1080 (by arithmetic the header Open Model clears the nav pill by about 16 px), and 375 (Chrome would not resize the viewport). Those checks go into the T7 pass.
+
 ## Next
 
 - **6 Nov check result:** no chain-day slot fired on 6 Nov by 08:14 UTC; since going public GitHub started about 4 of 24 refresh runs and 1 chain-day run (8 h late). Our setup is correct. The human chose: start the jobs from cron-job.org, remove the GitHub schedules (e1976fb), and let the new cron's first run freeze 2026-11-05.

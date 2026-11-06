@@ -49,7 +49,8 @@ export function Entrance() {
     lift(lbls[0], 1030, '.6em', 520);
     lift(lbls[1], 1075, '.6em', 520);
     animate($('.slash'), [{ scale: '1 0' }, { scale: '1 1' }], 700, 1010, EXPO);
-    settle($('.meet'), 1140, 820, 0.985, '1.2em');
+    settle($('.hx-row .meet'), 1140, 820, 0.985, '1.2em');
+    settle($('.hd-meet'), 260, 700, 0.985, '.5em');
 
     Promise.all(running.map((a) => a.finished.catch(() => {}))).then(() => {
       root.classList.remove('pre');

@@ -52,15 +52,16 @@ a:focus-visible,button:focus-visible{outline:calc(2*var(--u)) solid #2f5f9e;outl
 .hx-tag{font-size:calc(24*var(--u));font-weight:470;letter-spacing:-.03em;line-height:1;color:var(--ink-soft);white-space:nowrap}
 
 /* glass panel */
-.hx-panel{width:calc(275*var(--u));height:calc(271*var(--u));border-radius:calc(28*var(--u));background:linear-gradient(135deg,rgba(255,255,255,.44),rgba(255,255,255,.16));border:calc(1*var(--u)) solid rgba(255,255,255,.6);-webkit-backdrop-filter:blur(calc(40*var(--u))) saturate(112%);backdrop-filter:blur(calc(40*var(--u))) saturate(112%);box-shadow:inset calc(1*var(--u)) calc(1*var(--u)) 0 rgba(255,255,255,.55),inset calc(-1*var(--u)) calc(-1*var(--u)) 0 rgba(255,255,255,.18),0 calc(18*var(--u)) calc(40*var(--u)) rgba(28,52,92,.07)}
+.hx-panel{width:calc(350*var(--u));height:calc(236*var(--u));border-radius:calc(28*var(--u));background:linear-gradient(135deg,rgba(255,255,255,.44),rgba(255,255,255,.16));border:calc(1*var(--u)) solid rgba(255,255,255,.6);-webkit-backdrop-filter:blur(calc(40*var(--u))) saturate(112%);backdrop-filter:blur(calc(40*var(--u))) saturate(112%);box-shadow:inset calc(1*var(--u)) calc(1*var(--u)) 0 rgba(255,255,255,.55),inset calc(-1*var(--u)) calc(-1*var(--u)) 0 rgba(255,255,255,.18),0 calc(18*var(--u)) calc(40*var(--u)) rgba(28,52,92,.07)}
 .hx-panel>*{position:absolute}
-.p-title{left:calc(29*var(--u));top:calc(44.7*var(--u));font-size:calc(24*var(--u));font-weight:500;letter-spacing:-.02em;line-height:1;color:var(--ink);white-space:nowrap}
-.dot{left:calc(137*var(--u));top:calc(53*var(--u));width:calc(10*var(--u));height:calc(10*var(--u));border-radius:50%;background:var(--accent)}
-.ring{left:calc(177*var(--u));top:calc(46*var(--u));width:calc(73*var(--u));height:calc(73*var(--u));border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 0 calc(26*var(--u)) calc(10*var(--u)) rgba(255,255,255,.5),0 calc(6*var(--u)) calc(16*var(--u)) rgba(28,52,92,.06)}
+.p-head{left:calc(29*var(--u));top:calc(44.7*var(--u));display:flex;align-items:center;gap:calc(10.3*var(--u));white-space:nowrap}
+.p-title{font-size:calc(24*var(--u));font-weight:500;letter-spacing:-.02em;line-height:1;color:var(--ink);white-space:nowrap}
+.dot{flex:none;width:calc(11.485*var(--u));height:calc(10*var(--u));border-radius:50%;background:var(--accent)}
+.ring{left:calc(252*var(--u));top:calc(46*var(--u));width:calc(73*var(--u));height:calc(73*var(--u));border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 0 calc(26*var(--u)) calc(10*var(--u)) rgba(255,255,255,.5),0 calc(6*var(--u)) calc(16*var(--u)) rgba(28,52,92,.06)}
 .ring img{width:calc(30*var(--u));height:calc(30*var(--u));display:block}
 .p-sub{left:calc(29*var(--u));top:calc(94.35*var(--u));font-size:calc(18*var(--u));font-weight:400;letter-spacing:-.02em;line-height:calc(20.4*var(--u));color:var(--muted2);margin:0}
-.hx-scale{left:calc(47*var(--u));top:calc(189*var(--u));width:calc(190*var(--u));display:flex;justify-content:space-between;font-size:calc(15*var(--u));font-weight:400;letter-spacing:-.03em;line-height:1;color:#586580}
-.hx-track{left:calc(46*var(--u));top:calc(221*var(--u));width:calc(190*var(--u));height:calc(8*var(--u));border-radius:999px;background:#dde4ee;overflow:hidden}
+.hx-scale{left:calc(47*var(--u));top:calc(154*var(--u));width:calc(256*var(--u));display:flex;justify-content:space-between;font-size:calc(15*var(--u));font-weight:400;letter-spacing:-.03em;line-height:1;color:#586580}
+.hx-track{left:calc(46*var(--u));top:calc(186*var(--u));width:calc(256*var(--u));height:calc(8*var(--u));border-radius:999px;background:#dde4ee;overflow:hidden}
 .hx-track i{display:block;height:100%;border-radius:999px;background:#5f88b4;transform-origin:left center}
 
 /* stats row */
@@ -74,6 +75,15 @@ a:focus-visible,button:focus-visible{outline:calc(2*var(--u)) solid #2f5f9e;outl
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .meet b{left:calc(89.8*var(--u));top:calc(34.55*var(--u));font-size:calc(17.5*var(--u));font-weight:425;letter-spacing:-.0681em;line-height:1;color:#1b2a44;white-space:nowrap}
 .meet .hx-knob{left:calc(206*var(--u));top:calc(17*var(--u));width:calc(50*var(--u));height:calc(50*var(--u));background:var(--meet-knob)}
+/* wide desktop (16:9 and wider): Open Model moves into the header beside GitHub Repo; elsewhere it keeps the reference spot in the hero */
+.hd-meet{display:none}
+@media (min-aspect-ratio:16/9) and (min-width:900px){
+  .hx-row .meet{display:none}
+  .hd-meet{display:block;position:absolute;right:calc(310*var(--u));top:calc(45*var(--u));width:calc(230*var(--u));height:calc(70*var(--u))}
+  .hd-meet .thumb{left:calc(9*var(--u));top:calc(9*var(--u));width:calc(52*var(--u));height:calc(52*var(--u))}
+  .hd-meet b{left:calc(72*var(--u));top:calc(26.5*var(--u))}
+  .hd-meet .hx-knob{left:calc(172*var(--u));top:calc(10.5*var(--u));width:calc(49*var(--u));height:calc(49*var(--u))}
+}
 .stale{position:absolute;left:calc(81*var(--u));top:calc(125*var(--u));margin:0;z-index:3}
 
 /* compact: wrappers become the layout */
@@ -97,6 +107,7 @@ a:focus-visible,button:focus-visible{outline:calc(2*var(--u)) solid #2f5f9e;outl
   .brand{position:relative;left:auto;top:auto}
   .nav{position:relative;left:auto;top:auto;transform:none;flex:none}
   .cta{position:relative;right:auto;top:auto;flex:none}
+  .hd-meet{position:relative;right:auto;top:auto;margin-left:auto;margin-right:calc(16*var(--u));flex:none}
   .menu{display:flex;align-items:center;justify-content:space-between;flex:1;margin-left:calc(24*var(--u))}
 
   @media (min-aspect-ratio:1/1){
@@ -132,8 +143,9 @@ a:focus-visible,button:focus-visible{outline:calc(2*var(--u)) solid #2f5f9e;outl
     .play{width:calc(48*var(--t));height:calc(48*var(--t))}
     .play svg{width:calc(12*var(--t));height:calc(13*var(--t))}
     .hx-panel{width:100%;align-self:stretch;height:calc(212*var(--t));margin-top:calc(24*var(--u))}
-    .p-title{left:calc(30*var(--t));top:calc(30*var(--t));font-size:calc(24*var(--t))}
-    .dot{left:calc(137*var(--t));top:calc(40*var(--t));width:calc(10*var(--t));height:calc(10*var(--t))}
+    .p-head{left:calc(30*var(--t));top:calc(30*var(--t));gap:calc(10*var(--t))}
+    .p-title{font-size:calc(24*var(--t))}
+    .dot{width:calc(10*var(--t));height:calc(10*var(--t))}
     .ring{left:auto;right:calc(26*var(--t));top:calc(22*var(--t));width:calc(64*var(--t));height:calc(64*var(--t))}
     .ring img{width:calc(26*var(--t));height:calc(26*var(--t))}
     .p-sub{left:calc(31*var(--t));top:calc(66*var(--t));font-size:calc(17*var(--t));line-height:calc(21*var(--t))}
@@ -204,6 +216,11 @@ h1.title{font-weight:360;font-size:56px;line-height:60px;letter-spacing:-.035em;
 .gauge .gapnum,.gauge .gapcap{color:var(--warning)}
 .gauge-m,.readings{background:linear-gradient(135deg,rgba(255,255,255,.74),rgba(255,255,255,.52));border:1px solid rgba(255,255,255,.6);border-radius:var(--r-panel);-webkit-backdrop-filter:blur(40px) saturate(112%);backdrop-filter:blur(40px) saturate(112%)}
 .readings{margin:32px -28px 0;padding:24px 16px}
+/* What This Means: the same glass card as the gauge and readings */
+.wrap .means{background:linear-gradient(135deg,rgba(255,255,255,.74),rgba(255,255,255,.52));border:1px solid rgba(255,255,255,.6);border-radius:var(--r-panel);-webkit-backdrop-filter:blur(40px) saturate(112%);backdrop-filter:blur(40px) saturate(112%);box-shadow:inset 1px 1px 0 rgba(255,255,255,.55),inset -1px -1px 0 rgba(255,255,255,.18),0 18px 40px rgba(28,52,92,.07);max-width:none;margin:32px -28px 0;padding:28px}
+.wrap .means>.p-body{break-inside:avoid;margin:0 0 12px}
+.wrap .means>.s-title{margin-bottom:12px}
+@media (max-width:900px){.wrap .means{margin:20px 0 0;padding:20px}}
 .links-row{margin-top:20px}
 .links-3{flex-wrap:wrap;gap:12px 48px}
 .gauge + .gauge-m + .links-row{margin-top:26px}
@@ -217,3 +234,6 @@ h1.title{font-weight:360;font-size:56px;line-height:60px;letter-spacing:-.035em;
 .gauge .tval,.e-head,.ci-title,.e-checks .s-title,.cbar .strong,.chart .strong,.callout .strong,.share .strong{font-weight:500;letter-spacing:-.02em}
 body[data-state=loading] .hx-h1,body[data-state=loading] .hx-tag,body[data-state=loading] .hx-num,body[data-state=loading] .hx-lbl,body[data-state=loading] .p-title,body[data-state=loading] .p-sub,body[data-state=loading] .lead,body[data-state=loading] .body{color:transparent;background:var(--track);border-radius:8px}
 body[data-state=loading] .hx-track i,body[data-state=loading] .dot{opacity:0}
+
+/* fee page: the banner spans the full row */
+.split-foot .banner{max-width:none;flex:1}
