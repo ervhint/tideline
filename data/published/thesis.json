@@ -79,19 +79,19 @@
     "from": "2026-10-31",
     "to": "2026-11-06",
     "days": 7,
-    "daysRead": 0,
+    "daysRead": 7,
     "treasuryShare": 0.736318504359727,
     "pairedFlows": 85880,
-    "confidentialShare": null
+    "confidentialShare": 0.8132884801126
    },
    "last30": {
     "from": "2026-10-08",
     "to": "2026-11-06",
     "days": 30,
-    "daysRead": 0,
+    "daysRead": 30,
     "treasuryShare": 0.22077820123120334,
     "pairedFlows": 105300,
-    "confidentialShare": null
+    "confidentialShare": 0.4611603835460489
    }
   }
  },
@@ -444,7 +444,7 @@
    "As of 7 Nov, the verdict is held at Undecided because flow went private. The score is +3 of 7, but data lost to private flow may not move the verdict, so it stays Undecided until the treasury share falls back to 50% or less.",
    "Pointing Bullish: NEAR's share of fees is 34% over the last 30 days and revenue has risen over each of the last three months. In between: one integrator brings much of the fees but stays under the 80% line (SwapKit 75% of visible app fees). The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power (0 usable fee changes, 3 needed). Not measured because flow went private: Solver Competition (treasury 74% of USD). On the public swaps left, as side figures that set no reading: spread 10.5 bps and top 3 solvers hold 59%.",
-   "The Confidential Intents treasury, where funds move to a private chain and the swap settles out of public view, carried 74% of the USD counted over the last 7 frozen days and 22% over the last 30.",
+   "The Confidential Intents treasury, where funds move to a private chain and the swap settles out of public view, carried 74% of the USD counted over the last 7 frozen days and 22% over the last 30. Other accounts' funds going into it were 81% of the flow we can see over 7 of the last 7 days, a side measure that sets no reading.",
    "Monthly volume would need to reach about 3.1x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 4.9x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]
  }
