@@ -118,12 +118,43 @@ Changes to the design reference that the human asked for (rule 21: asked, not in
 - **6 Nov check result:** no chain-day slot fired on 6 Nov by 08:14 UTC; since going public GitHub started about 4 of 24 refresh runs and 1 chain-day run (8 h late). Our setup is correct. The human chose: start the jobs from cron-job.org, remove the GitHub schedules (e1976fb), and let the new cron's first run freeze 2026-11-05.
 - **cron-job.org set up 6 Nov (docs/CRON.md):** 3 jobs in WIB, made in the human's account; the human made a fine-grained token (Actions read/write on this repo only, expires 2027-02-04) and pasted it into each job. Jobs: chain-day `17 10,13 * * *`, attest-days `41 12,15 * * *`, refresh `23 * * * *`; failure emails on. First proof: attest-days fired by itself at 15:41 WIB (run 42189457632, success, nothing new). Test run of chain-day at 15:43 WIB got 204 and started run 42189700268 (freezes 2026-11-05, about 1.5 to 2 h).
 - **5 Nov freeze timed out (6 Nov):** run 42189700268 was cancelled at its 170 min cap after reading 140k of 204k census transactions; nothing written. The census is growing fast: about 30k a day in late Oct, 67k on 3 Nov, 113k on 4 Nov, 204k on 5 Nov (only about 20k of them are swaps). At one FastNEAR call a second (20 transactions a call) that is nearly 4 hours. Fix 05156be (the human's yes): chain-day cap 350 min (GitHub allows 6 h), `GAP_MS=500` (2 calls a second; a 429 still waits and retries, and the run summary counts them). Rerun by hand at 11:43 UTC: run 42212389651, `day=2026-11-05`, `commit=true`; still running at 13:46 UTC (longer than the 2 h guessed; maybe 429 waits, check the summary). It stops itself by 17:33 UTC at the latest.
-- **If the census keeps doubling** (about 400k a day), even 350 min is not enough: then split the read across parallel runners like chain-backfill does, and find out why the census grows (which filler's event-log listing brings in non-swap transactions).
+- **If the census keeps doubling** (about 400k a day), even 350 min is not enough: split across parallel runners, done in T6b. It grows because the treasury's traffic grows (6 Nov finding).
 - **Pick up here (next chat):** `gh run view 42212389651` (the 5 Nov rerun; read its summary for minutes and 429s). If it passed: 2026-11-05 is on main; check `npm run verify` ALL OK after `git pull`, and that `chain_days.json`, `fee_trace.json`, `elasticity.json` and `token_board.json` now end on 2026-11-05 (first real day for `npm run rebuild`). Then start attest-days by hand (`gh workflow run attest-days.yml --ref main -f dry_run=false`, the human's yes, 6 Nov) and confirm 2026-11-05 reads "matches" on the contract. If the freeze failed, read the log, fix, and run it again by hand. Then 7 Nov: the 10:17 WIB cron run should freeze 2026-11-06 and 12:41 anchor it with no hand step; when it does, write "T2 closed" with the date.
 - **Then T7** (P7: test → G6, ship → G7), only once T2 is confirmed working (the human, 5 Nov). LICENSE file (MIT) is part of T7.
 - Still open from PLAN §7: a paid FastNEAR key, recommended no.
 
-## T6b Confidential shift: decided, not built (6 Nov 2026)
+## T6b Confidential shift: built, not committed (7 Nov 2026)
+
+Built to PREREG A2; plan in docs/PLAN.md §6b. Results from the frozen days to 5 Nov: Q3 Not Measured (treasury 64% of the last 7 days), Q4 stays Neutral (treasury 19% of 30 days, SwapKit 75%), score +3, verdict Undecided on the hold. Side figures on public swaps: spread 10.4 bps over 6 usable days (4 Nov had 11 priced swaps, under the 30 needed), top 3 hold 65%.
+
+- **New:** `analysis/treasury.mjs`, `pipeline/treasury_day.mjs`, `pipeline/build_confidential.mjs` → `data/published/confidential.json` (in rebuild, refresh, verify), `treasury-backfill.yml`. chain-day writes `data/treasury/<day>.jsonl` from its own read, after the chain file is on disk. Not anchored (PLAN §6b).
+- **Site:** text in existing slots only, no design change. Home lead and body line, Follow the Fee confidential row, notes on Concentration, What Would Move, Method (new source entry), README headline finding, THESIS_DRAFT note (gitignored).
+- **Next, on the human's command:** commit and push, then `gh workflow run treasury-backfill.yml --ref main -f to=<last frozen day> -f commit=true`. The confidential share reads Not Measured until that lands; the real read has not run yet, so per-day time and the first file are unproven.
+- **Census split (7 Nov, the human's ask):** `chain-day.yml` now runs start, 4 read jobs by block range, then freeze, so a day of about 800k transactions fits (one runner: 300k listing cap, about 325k time cap; parts are uneven, the busiest held 40% on 5 Nov). A day read in parts freezes to the same bytes as one read on stand-in data; a missing part or a part under 99% read stops the freeze. The weekly discovery, next due for the 10 Nov day, no longer fails on a capped settlement listing: it samples the start of the day and leaves `settlementTxs` null. Part files hold account names from public chain data, so they are artifacts kept one day and never committed. chain-backfill still reads in one run per day.
+- **Proven on real data (run 42262780228, `test` branch, `commit=false`, 5 Nov re-read):** 1 h 37 min against 3 h 40 min. Same 203,929 transactions, same digest, same 2,178 and 18,025 swaps, same 1,196 groups, routes and decimals. USD 0.03% lower: 67 of 1,105 hourly prices came back different from DefiLlama (mostly `token.rhealab.near`, nBTC), which also moved 4 swaps across a size line. Method page now says 0.03%, not 0.0012%. Parts held 82,396, 65,864, 36,029 and 19,640 transactions, slowest 93.6 min. 429s 1,279 in all, about 9 to 11% of calls in each part, no worse than one runner.
+- **First real treasury file (5 Nov, from that run, not committed):** 198,802 transactions, 239,518 transfers, 445 rows, no account named but the treasury. Other accounts $50.5M in, $53.9M out; listed fillers $32.1M each way. Public swaps $0.95M, so the confidential share is 98%. 16% of transfers are unpriced, largest USDT on Tron and a Solana token, so USD reads low. Paired confidential flows hold $32.7M against that $50.5M in.
+- **Known limits (review):** If the public $10k to $100k bucket empties, Follow the Fee falls back to the draft sample figures, and a proper state there is a design question. `isTreasury` matches the whole solver field (no joined row in 33 days). `events()` does not check that a dip4 log came from intents.near. chain-backfill drops treasury files, so run treasury-backfill after it.
+
+### Before submitting: order the human chose (7 Nov 2026)
+
+Each row after T6b is its own chat (rule 14). Plan rows are in docs/PLAN.md §6.
+
+| Order | Work | Model |
+|---|---|---|
+| 1 | Finish T6b: commit, get it to main, run treasury-backfill | Opus 5.5 medium |
+| 2 | T6c: `THESIS.md`, README rebuild steps, each chart's query and sentence | Opus 5.5 medium |
+| 3 | T5b: Elasticity history from BigQuery, if there is time | Opus 5.5 high |
+| 4 | T7 | Per workflow §9 |
+
+**T6b state, read this before committing.** `test` holds e021a9f (T6b) and ee70c27 (TEST ONLY: removes 2026-11-05, must never reach main); the census split is still uncommitted there. `main` has moved on with data commits. Only T6b and the census split go to main, on the human's command.
+
+**BigQuery facts for T5b (7 Nov 2026).** Project `tideline-check`, Sandbox with no billing, on the Google account the human chose. `bigquery-public-data.crypto_near_mainnet_us.execution_outcomes` has `intents.near` rows through 7 Nov. Estimates, not run: logs, 1 Nov 2025 to 3 Oct 2026, 704.87 GB; `block_timestamp` and `logs`, 1 Sep 2025 to 3 Oct 2026, 960.7 GB; with `block_date` and `receipt_id` as well, 1.13 TB. Free allowance 1 TB a month, 585 MB used, so about one full read before the deadline.
+
+T5b steps: test one day first (does each fee sit in the same row as its swap?). Write the PREREG amendment before the full read, saying the fee changes were already known to exist, and covering the 1 to 3 Oct exploit pause. Read once into a small saved table of Intents logs. Commit results so `verify` needs no key; the human must agree to relax the keyless rule for this one source. Likely result is Neutral, so the score stays +3. The daily jobs and cron stay on FastNEAR.
+
+**Verdict hold:** the human has not said whether it stays. The recommendation was to keep it.
+
+### Handover as decided (6 Nov 2026)
 
 Comes before T7. Run on Opus 5.5 medium (the human's choice): plan in docs/PLAN.md, build, then review. The rules are PREREG.md amendment A2 (0f7366f, the human's yes): read it first; it is the definition, and code that differs is the bug.
 
@@ -143,6 +174,6 @@ Comes before T7. Run on Opus 5.5 medium (the human's choice): plan in docs/PLAN.
 3. Site: hub wording in `app/method/page.tsx`, `lib/fee_view.ts`, `lib/thesis_view.ts`; confidential path line on Follow the Fee; the verdict hold reason on the home page; the confidential share. Any design change is asked first (rule 21). README and THESIS_DRAFT.md: make the shift a headline finding.
 4. Checks: `npm test`, `verify`, Chrome at 1440 and 375 for every state, code review.
 
-**Watch:** the 5 Nov freeze read 203,929 transactions in 219.59 min with 1,303 429s; the 350 min cap is reached at about 325k. If treasury traffic grows after 9 Nov, see the census note in Next.
+**Watch:** the 5 Nov freeze read 203,929 transactions in 219.59 min with 1,303 429s, so one runner reaches its 350 min cap at about 325k. The census now splits across 4 runners (above); read each part's summary for minutes and 429s after 9 Nov.
 
 **Cron status (6 Nov):** the 5 Nov freeze came from the hand rerun 42212389651, not the cron. refresh runs hourly from cron-job.org. chain-day's first real cron run is 03:17 UTC 7 Nov (6 Nov data); 5 Nov is not anchored yet, due 05:41 UTC 7 Nov.

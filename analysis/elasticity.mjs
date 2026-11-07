@@ -18,7 +18,7 @@ export const MIN_WINDOW_DAYS = 4;
 export const MIN_BEFORE_USD = 50000;
 export const MIN_EVENTS = 3;
 export const LEFT_OUT_DAYS = ['2026-10-04']; // the last day of the 1 to 4 Oct exploit pause
-export const HUB_SHIFT_DAYS = ['2026-10-28', '2026-10-29', '2026-10-30']; // flow moved from token_diff swaps to the hub
+export const HUB_SHIFT_DAYS = ['2026-10-28', '2026-10-29', '2026-10-30']; // flow moved from token_diff swaps to the Confidential Intents treasury
 export const NOT_FRONTENDS = new Set(['', '1click-unknown']);
 const E2_BUCKET = '1k-10k';
 
@@ -236,7 +236,7 @@ export function estimateAll(panel, ranges, events, { venues = [], reps = REPS } 
     dropLargest: { label: `Drop the largest frontend (${largest ?? 'none'})`, skipped: largest, ...estimate(panel, ranges, events, { reps, skip: (e) => e.frontend === largest }) },
     shift2: { label: 'Fee shift 2 bps instead of 5', ...estimate(panel, ranges, events, { reps, shift: 2 }) },
     shift10: { label: 'Fee shift 10 bps instead of 5', ...estimate(panel, ranges, events, { reps, shift: 10 }) },
-    noHubShift: { label: 'Leave out events whose windows touch 28 to 30 Oct (the move to the hub)', skipped: events.filter(touchesShift).map((e) => e.frontend), ...estimate(panel, ranges, events, { reps, skip: touchesShift }) },
+    noHubShift: { label: 'Leave out events whose windows touch 28 to 30 Oct (the move to the treasury)', skipped: events.filter(touchesShift).map((e) => e.frontend), ...estimate(panel, ranges, events, { reps, skip: touchesShift }) },
   };
   for (const v of venues) checks[`control_${v.key}`] = { label: `${v.name} on DefiLlama as the control`, ...estimate(panel, ranges, events, { reps, control: v.series }) };
   return { main, checks };

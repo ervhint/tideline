@@ -1,0 +1,403 @@
+{
+ "prereg": "PREREG.md amendment A2, rules 1, 7 and 8",
+ "source": "intents.near dip4 transfers to and from the Confidential Intents treasury (FastNEAR), priced from DefiLlama; frozen chain days for the rest. Not anchored on chain; sets no reading",
+ "query": "analysis/treasury.mjs confidentialDoc → data/chain/*.jsonl, data/treasury/*.jsonl",
+ "account": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+ "perDay": [
+  {
+   "day": "2026-10-04",
+   "usd": 18633676.14,
+   "treasuryUsd": 232945.92,
+   "publicUsd": 18400730.22,
+   "treasuryShare": 0.012501339952986867,
+   "pairedFlows": 108,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-05",
+   "usd": 37288655.71,
+   "treasuryUsd": 64206.84,
+   "publicUsd": 37224448.87,
+   "treasuryShare": 0.0017218866912056803,
+   "pairedFlows": 59,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-06",
+   "usd": 32234861.5,
+   "treasuryUsd": 133426.8,
+   "publicUsd": 32101434.7,
+   "treasuryShare": 0.004139208105485361,
+   "pairedFlows": 48,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-07",
+   "usd": 31109076.64,
+   "treasuryUsd": 329699.69,
+   "publicUsd": 30779376.95,
+   "treasuryShare": 0.010598183090271097,
+   "pairedFlows": 64,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-08",
+   "usd": 48330669.17,
+   "treasuryUsd": 136593.95,
+   "publicUsd": 48194075.22,
+   "treasuryShare": 0.0028262375081036027,
+   "pairedFlows": 129,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-09",
+   "usd": 63418118.89,
+   "treasuryUsd": 55130.58,
+   "publicUsd": 63362988.31,
+   "treasuryShare": 0.0008693190678775175,
+   "pairedFlows": 90,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-10",
+   "usd": 35480720.33,
+   "treasuryUsd": 120800.91,
+   "publicUsd": 35359919.42,
+   "treasuryShare": 0.003404691586767416,
+   "pairedFlows": 108,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-11",
+   "usd": 31782290.63,
+   "treasuryUsd": 106056.45,
+   "publicUsd": 31676234.18,
+   "treasuryShare": 0.003336966842153575,
+   "pairedFlows": 113,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-12",
+   "usd": 32091322.04,
+   "treasuryUsd": 132210.03,
+   "publicUsd": 31959112.01,
+   "treasuryShare": 0.00411980627769731,
+   "pairedFlows": 146,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-13",
+   "usd": 35095029.41,
+   "treasuryUsd": 237997,
+   "publicUsd": 34857032.41,
+   "treasuryShare": 0.0067815016542537515,
+   "pairedFlows": 329,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-14",
+   "usd": 29316305.22,
+   "treasuryUsd": 217428.03,
+   "publicUsd": 29098877.19,
+   "treasuryShare": 0.0074166245837713925,
+   "pairedFlows": 418,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-15",
+   "usd": 24991394.63,
+   "treasuryUsd": 48453.56,
+   "publicUsd": 24942941.07,
+   "treasuryShare": 0.0019388097670161736,
+   "pairedFlows": 193,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-16",
+   "usd": 19515043.15,
+   "treasuryUsd": 715852.68,
+   "publicUsd": 18799190.47,
+   "treasuryShare": 0.03668209567858413,
+   "pairedFlows": 240,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-17",
+   "usd": 38575017.96,
+   "treasuryUsd": 159394.1,
+   "publicUsd": 38415623.86,
+   "treasuryShare": 0.004132055107927163,
+   "pairedFlows": 259,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-18",
+   "usd": 38412294.08,
+   "treasuryUsd": 101973.76,
+   "publicUsd": 38310320.32,
+   "treasuryShare": 0.002654716736980683,
+   "pairedFlows": 91,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-19",
+   "usd": 24125069.41,
+   "treasuryUsd": 178404.34,
+   "publicUsd": 23946665.07,
+   "treasuryShare": 0.007394977273145182,
+   "pairedFlows": 110,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-20",
+   "usd": 31270779.19,
+   "treasuryUsd": 573170.31,
+   "publicUsd": 30697608.88,
+   "treasuryShare": 0.018329262168922618,
+   "pairedFlows": 147,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-21",
+   "usd": 46374843.02,
+   "treasuryUsd": 12444746.66,
+   "publicUsd": 33930096.36,
+   "treasuryShare": 0.2683512406636707,
+   "pairedFlows": 202,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-22",
+   "usd": 32022169.49,
+   "treasuryUsd": 4765295.22,
+   "publicUsd": 27256874.27,
+   "treasuryShare": 0.1488123789204261,
+   "pairedFlows": 283,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-23",
+   "usd": 27280382.46,
+   "treasuryUsd": 890225.04,
+   "publicUsd": 26390157.42,
+   "treasuryShare": 0.03263242519804463,
+   "pairedFlows": 541,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-24",
+   "usd": 21434886.22,
+   "treasuryUsd": 355869.26,
+   "publicUsd": 21079016.96,
+   "treasuryShare": 0.016602339585453603,
+   "pairedFlows": 262,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-25",
+   "usd": 22143973.84,
+   "treasuryUsd": 189355.88,
+   "publicUsd": 21954617.96,
+   "treasuryShare": 0.008551124625064126,
+   "pairedFlows": 175,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-26",
+   "usd": 34457063.47,
+   "treasuryUsd": 236839.25,
+   "publicUsd": 34220224.22,
+   "treasuryShare": 0.006873460073177841,
+   "pairedFlows": 72,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-27",
+   "usd": 33706158.48,
+   "treasuryUsd": 157104.18,
+   "publicUsd": 33549054.3,
+   "treasuryShare": 0.004660993334295842,
+   "pairedFlows": 116,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-28",
+   "usd": 30238857.09,
+   "treasuryUsd": 2206864.94,
+   "publicUsd": 28031992.15,
+   "treasuryShare": 0.07298109625743111,
+   "pairedFlows": 954,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-29",
+   "usd": 24632082.94,
+   "treasuryUsd": 10055968.5,
+   "publicUsd": 14576114.44,
+   "treasuryShare": 0.40824677817522814,
+   "pairedFlows": 4494,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-30",
+   "usd": 51304239.81,
+   "treasuryUsd": 21502539.09,
+   "publicUsd": 29801700.72,
+   "treasuryShare": 0.4191181697581397,
+   "pairedFlows": 9948,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-10-31",
+   "usd": 19546727.9,
+   "treasuryUsd": 9101654.95,
+   "publicUsd": 10445072.95,
+   "treasuryShare": 0.4656357317993886,
+   "pairedFlows": 6121,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-11-01",
+   "usd": 24147775.06,
+   "treasuryUsd": 10129087.14,
+   "publicUsd": 14018687.92,
+   "treasuryShare": 0.4194625432294389,
+   "pairedFlows": 7397,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-11-02",
+   "usd": 41801650.5,
+   "treasuryUsd": 21106802.13,
+   "publicUsd": 20694848.37,
+   "treasuryShare": 0.5049274819902112,
+   "pairedFlows": 5997,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-11-03",
+   "usd": 34197417.37,
+   "treasuryUsd": 24086154.27,
+   "publicUsd": 10111263.1,
+   "treasuryShare": 0.7043267042478453,
+   "pairedFlows": 13080,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-11-04",
+   "usd": 39056616.57,
+   "treasuryUsd": 36352523.3,
+   "publicUsd": 2704093.27,
+   "treasuryShare": 0.9307647843700595,
+   "pairedFlows": 17639,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-11-05",
+   "usd": 33665927.55,
+   "treasuryUsd": 32714631.38,
+   "publicUsd": 951296.17,
+   "treasuryShare": 0.9717430577670212,
+   "pairedFlows": 17924,
+   "read": false,
+   "confidentialShare": null
+  },
+  {
+   "day": "2026-11-06",
+   "usd": 32077149.95,
+   "treasuryUsd": 31807691.88,
+   "publicUsd": 269458.07,
+   "treasuryShare": 0.9915996879267635,
+   "pairedFlows": 17722,
+   "read": false,
+   "confidentialShare": null
+  }
+ ],
+ "missingDays": [
+  "2026-10-04",
+  "2026-10-05",
+  "2026-10-06",
+  "2026-10-07",
+  "2026-10-08",
+  "2026-10-09",
+  "2026-10-10",
+  "2026-10-11",
+  "2026-10-12",
+  "2026-10-13",
+  "2026-10-14",
+  "2026-10-15",
+  "2026-10-16",
+  "2026-10-17",
+  "2026-10-18",
+  "2026-10-19",
+  "2026-10-20",
+  "2026-10-21",
+  "2026-10-22",
+  "2026-10-23",
+  "2026-10-24",
+  "2026-10-25",
+  "2026-10-26",
+  "2026-10-27",
+  "2026-10-28",
+  "2026-10-29",
+  "2026-10-30",
+  "2026-10-31",
+  "2026-11-01",
+  "2026-11-02",
+  "2026-11-03",
+  "2026-11-04",
+  "2026-11-05",
+  "2026-11-06"
+ ],
+ "chainGaps": [],
+ "last7": {
+  "from": "2026-10-31",
+  "to": "2026-11-06",
+  "days": 7,
+  "daysRead": 0,
+  "treasuryShare": 0.736318504359727,
+  "pairedFlows": 85880,
+  "confidentialShare": null
+ },
+ "last30": {
+  "from": "2026-10-08",
+  "to": "2026-11-06",
+  "days": 30,
+  "daysRead": 0,
+  "treasuryShare": 0.22077820123120334,
+  "pairedFlows": 105300,
+  "confidentialShare": null
+ }
+}

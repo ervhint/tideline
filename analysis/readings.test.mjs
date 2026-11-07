@@ -99,4 +99,39 @@ test('T-6.2 run rates: trailing 90-day revenue at the last day and 30, 60, 90 da
   assert.equal(runRates(series.slice(0, 100)), null);
 });
 
+test('A2 rule 3: Q3 and Q4 read Not Measured over the 50% line; exactly 50% is not over', () => {
+  assert.equal(q3({ spreadBps: 4, top3: 0.5, treasuryShare: 0.5 }).side, B);
+  assert.equal(q4(0.4, 'X', 0.5).side, B);
+  const a = q3({ spreadBps: 4, top3: 0.5, treasuryShare: 0.94 });
+  assert.equal(a.side, M);
+  assert.equal(a.detail, 'Flow went private: treasury 94% of USD');
+  assert.equal(a.privateFlow, true);
+  const b = q4(0.7, 'SwapKit', 0.5001);
+  assert.equal(b.side, M);
+  assert.equal(b.detail, 'Flow went private: treasury 50.0% of USD');
+  assert.equal(q3({ spreadBps: 4, top3: 0.5, treasuryShare: 0.504 }).detail, 'Flow went private: treasury 50.4% of USD');
+  // No treasury share known: the reading stands as section 6 has it.
+  assert.equal(q3({ spreadBps: 4, top3: 0.5 }).side, B);
+  assert.equal(q4(0.4).side, B);
+});
 
+test('A2 rule 4: over the line the public figures stay as side figures, and a missing one stays missing', () => {
+  assert.deepEqual(q3({ spreadBps: 10.4, top3: 0.65, treasuryShare: 0.64 }).sideFigures, { spreadBps: 10.4, top3: 0.65 });
+  assert.deepEqual(q3({ spreadBps: null, top3: 0.65, treasuryShare: 0.64 }).sideFigures, { spreadBps: null, top3: 0.65 });
+  assert.deepEqual(q4(0.75, 'SwapKit', 0.6).sideFigures, { share: 0.75, name: 'SwapKit' });
+});
+
+test('A2 rule 5: a held verdict is Undecided whatever the score, and the score is still published', () => {
+  const v = verdict([N, B, M, N, B], ['Q3']);
+  assert.deepEqual(v, { verdict: 'Undecided', score: 3, missing: 1, held: ['Q3'] });
+  assert.equal(verdict([R, R, M, N, R], ['Q3']).verdict, 'Undecided', 'a hold stops Bearish too');
+  assert.equal(verdict([R, R, M, N, R], ['Q3']).score, -5);
+  assert.equal(verdict([N, B, M, M, B], ['Q3', 'Q4']).held.length, 2);
+});
+
+test('A2 rule 5: a Not Measured for any other reason does not hold, and the verdict returns by itself', () => {
+  assert.equal(verdict([N, B, M, N, B]).verdict, B, 'section 6 stands when no reading is held');
+  const read = (treasuryShare) => { const r = q3({ spreadBps: 3, top3: 0.5, treasuryShare }); return verdict([N, B, r.side, N, B], r.privateFlow ? ['Q3'] : []); };
+  assert.equal(read(0.51).verdict, 'Undecided');
+  assert.equal(read(0.5).verdict, B);
+});

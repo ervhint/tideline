@@ -18,7 +18,7 @@ const COW = 'data/snapshot/cow_daily.json';
 const P = 'data/published';
 const VENUES = 'data/snapshot/control_venues.json';
 const TOKENS = 'data/labels/tokens.json';
-const DERIVED = ['chain_days', 'fee_trace', 'elasticity', 'thesis', 'reconciliation', 'token_board'];
+const DERIVED = ['chain_days', 'fee_trace', 'elasticity', 'confidential', 'thesis', 'reconciliation', 'token_board'];
 const FILES = [LLAMA, COW, VENUES, TOKENS, `${P}/model_inputs.json`, ...DERIVED.map((f) => `${P}/${f}.json`), HISTORY];
 
 const read = (f) => (existsSync(f) ? readFileSync(f, 'utf8') : null);

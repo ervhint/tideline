@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { runDay, isOver, defaultDay, needsDiscovery } from './chain_day.mjs';
+import { runDay, isOver, defaultDay, needsDiscovery, findFillers, readCensus, finishDay, heightsOf, sliceOf, partText, parsePart, joinParts, PARTS } from './chain_day.mjs';
 import { parseDayFile } from '../analysis/chain_day.mjs';
 
 const log = (event, data) => `EVENT_JSON:${JSON.stringify({ standard: 'dip4', version: '0.4.3', event, data })}`;
@@ -117,4 +117,67 @@ test('thesis.json names the last frozen chain day, which is what the Data Is Lat
   const last = readdirSync('data/chain').filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f)).sort().at(-1)?.slice(0, 10) ?? null;
   assert.equal(JSON.parse(readFileSync('data/published/thesis.json', 'utf8')).snapshotLastDay, last);
   assert.ok(last >= '2026-11-03', 'the first frozen day is 2026-11-03; later days only add to it');
+});
+
+// Transactions spread over the day's blocks, so a block range lists only its own.
+const DOC = { updated: '2026-11-01', fillers: [{ account: 'h', kind: 'hub', since: '2026-11-01' }, { account: 's1', kind: 'solver', since: '2026-11-01' }] };
+const START = Date.parse('2026-11-03T00:00:00Z') / 1000;
+const atHeight = new Map(ALL.map((h, i) => [h, START + 1000 + i * 12000]));
+const spread = () => fake({ listAccount: async (_, from, to) => ({ capped: false, pages: 1, txs: new Map(ALL.filter((h) => atHeight.get(h) >= from && atHeight.get(h) < to).map((h) => [h, { ts: 1000 }])) }) });
+const readInParts = async (parts, io = spread()) => {
+  const { from, to } = await heightsOf('2026-11-03', io);
+  const fillers = new Set(DOC.fillers.map((f) => f.account));
+  const texts = [];
+  for (let i = 0; i < parts; i++) { const [a, b] = sliceOf(from, to, i, parts); texts.push(partText(await readCensus({ day: '2026-11-03', io, fillers, from: a, to: b, log: quiet }))); }
+  return texts;
+};
+
+test('the block ranges touch, never overlap, and cover the day', () => {
+  const s = Array.from({ length: 4 }, (_, i) => sliceOf(100, 1103, i, 4));
+  assert.equal(s[0][0], 100);
+  assert.equal(s[3][1], 1103);
+  for (let i = 1; i < 4; i++) assert.equal(s[i][0], s[i - 1][1]);
+});
+
+test('a day read in parts freezes to the same bytes as a day read in one run, whichever way it is split', async () => {
+  const whole = await runDay({ day: '2026-11-03', io: spread(), fillersDoc: DOC, log: quiet });
+  for (const parts of [2, PARTS, 7]) {
+    const r = await finishDay({ day: '2026-11-03', io: spread(), fillersDoc: DOC, settlementTxs: null, ...joinParts(await readInParts(parts), parts), log: quiet });
+    assert.equal(r.text, whole.text);
+  }
+});
+
+test('a part keeps its raw amounts exactly through the file between jobs', () => {
+  const rows = [{ hash: 'a', ts: 5, swaps: [{ give: [{ token: 't', raw: 12345678901234567890123n }], get: [], feeBps: null }], transfers: [{ from: 'u', to: 'h', token: 't', raw: 7n, intentHash: undefined }] }];
+  const p = parsePart(partText({ listed: 3, rows }));
+  assert.equal(p.listed, 3);
+  assert.equal(p.rows[0].swaps[0].give[0].raw, 12345678901234567890123n);
+  assert.equal(p.rows[0].transfers[0].raw, 7n);
+});
+
+test('a day is never frozen from some of its parts', async () => {
+  const texts = await readInParts(PARTS);
+  texts[1] = null;
+  assert.throws(() => joinParts(texts), /only 3 of 4 read parts arrived/);
+  assert.throws(() => joinParts(texts.slice(0, 2)), /read parts arrived/);
+});
+
+test('rows missing across the parts stop the freeze on the same 99% rule', async () => {
+  const p = joinParts(await readInParts(PARTS));
+  await assert.rejects(finishDay({ day: '2026-11-03', io: spread(), fillersDoc: DOC, settlementTxs: null, listed: p.listed + 50, rows: p.rows, log: quiet }), /census transactions could be read/);
+});
+
+test('a capped settlement listing does not stop discovery: it samples what it has and leaves the count unknown', async () => {
+  const said = [];
+  const io = fake({ listAccount: async () => ({ capped: true, pages: 1500, txs: new Map(ALL.map((h) => [h, { ts: 1000 }])) }) });
+  const f = await findFillers({ day: '2026-11-03', io, fillersDoc: null, from: 0, to: 1, log: (m) => said.push(m) });
+  assert.equal(f.settlementTxs, null);
+  assert.deepEqual(f.fillersDoc.fillers.map((x) => x.account), ['h', 's1']);
+  assert.ok(said.some((m) => /cut short at 7/.test(m)));
+});
+
+test('one part under 99% stops the day, even if the whole day would pass', async () => {
+  const io = spread();
+  const short = { ...io, readTxs: async (hashes) => (hashes.length > 1 ? hashes.slice(1) : hashes).map((h) => TXS.get(h)) };
+  await assert.rejects(readCensus({ day: '2026-11-03', io: short, fillers: new Set(['h', 's1']), from: START, to: START + 86_400, log: quiet }), /census transactions could be read/);
 });

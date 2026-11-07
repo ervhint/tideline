@@ -1,0 +1,112 @@
+name: treasury-backfill
+
+# T6b (PREREG.md amendment A2 rule 8): reads past UTC days of transfers to and from the Confidential Intents treasury into data/treasury/<day>.jsonl.
+# By hand only; chain-day writes new days itself. One day per job, because a late day holds about as many transactions as a full census, and at
+# most 6 jobs run at once, each on its own runner. Keyless public reads only (FastNEAR, NEAR RPC, DefiLlama).
+# Each day uses the filler list of its frozen file in data/chain, which is not changed. A day that can't be read stays a gap: its step logs NOT READ.
+# One last job copies the days in, rebuilds the derived files, runs `npm run verify`, and commits once (only if `commit` is on).
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'First UTC day, YYYY-MM-DD'
+        type: string
+        default: '2026-10-04'
+      to:
+        description: 'Last UTC day, YYYY-MM-DD'
+        type: string
+        required: true
+      commit:
+        description: 'Commit the treasury days to the branch this run is on'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency: treasury-backfill
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - id: plan
+        env:
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+        run: echo "matrix=$(node pipeline/backfill_plan.mjs "$FROM" "$TO" 1)" >> "$GITHUB_OUTPUT"
+
+  read:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Read the day
+        env:
+          DAY: ${{ matrix.days }}
+          GAP_MS: '500'
+        run: timeout 340m node pipeline/treasury_day.mjs "$DAY" || echo "::warning::$DAY is a gap"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: treasury-${{ matrix.job }}
+          path: data/treasury/20*.jsonl
+          if-no-files-found: ignore
+
+  commit:
+    needs: read
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: treasury-*
+          path: ${{ runner.temp }}/days
+          merge-multiple: true
+      - name: Add the days, rebuild and check
+        run: |
+          ls "$RUNNER_TEMP/days" 2>/dev/null | wc -l | xargs echo "treasury day files:"
+          mkdir -p data/treasury
+          # Never replace a day already on the branch.
+          cp -n "$RUNNER_TEMP/days"/*.jsonl data/treasury/ 2>/dev/null || true
+          npm run rebuild
+          npm run verify
+          node -e "const d=JSON.parse(require('fs').readFileSync('data/published/confidential.json','utf8'));console.log('chain days',d.perDay.length,'without a treasury file',JSON.stringify(d.missingDays))" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        if: inputs.commit
+        run: |
+          git config user.name "tideline-chain"
+          git config user.email "tideline-chain@users.noreply.github.com"
+          for i in 1 2 3; do
+            git add data
+            if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+            git commit -m "data: backfill treasury days ${{ inputs.from }} to ${{ inputs.to }}"
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            # Another run moved the branch (the daily freeze, refresh): start again from it and add the days once more.
+            git rebase --abort 2>/dev/null || true
+            git fetch origin "$GITHUB_REF_NAME" && git reset --hard "origin/$GITHUB_REF_NAME"
+            mkdir -p data/treasury
+            cp -n "$RUNNER_TEMP/days"/*.jsonl data/treasury/ 2>/dev/null || true
+            npm run rebuild && npm run verify
+            sleep 10
+          done
+          exit 1

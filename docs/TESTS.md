@@ -113,6 +113,24 @@ Tests written for the Explorer API or a quote archive (T-1.1, T-2.1, T-3.x quote
 | T-21.2 | FR-21, D14 | unit | Elasticity with each extra control venue; fee switch against each | Each venue is its own check; a venue with no history gives no estimate | ⏭ not run | |
 | T-7.4 | FR-14 | cli | `verify --full` also compares the NEAR fee files and the CoW file | Within the drift limit | ⏭ not run | |
 
+## T6b Confidential shift (PREREG.md amendment A2)
+
+| ID | Rule | Type | Check | Expected | Status | Evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-A2.1 | A2 1 | unit | Treasury share over a window | Treasury USD ÷ all USD | ✅ pass | analysis/treasury.test.mjs |
+| T-A2.2 | A2 2 | unit | E3 and the Q3 spread | Treasury groups left out; no figure with the treasury as one account | ✅ pass | analysis/realised_cost.test.mjs |
+| T-A2.3 | A2 3 | unit | Share of exactly 50%, just over, far over, unknown | Not over at 50%; Not Measured above it with the share named | ✅ pass | analysis/readings.test.mjs |
+| T-A2.4 | A2 4 | unit | Side figures over the line | Kept on the reading, set nothing, a missing one stays missing | ✅ pass | analysis/readings.test.mjs, analysis/thesis_text.test.mjs |
+| T-A2.5 | A2 5 | unit | Verdict with a held reading | Undecided whatever the score, score published, Bearish held too, returns by itself | ✅ pass | analysis/readings.test.mjs |
+| T-A2.6 | A2 6 | unit | Cost parts | Public swaps only; confidential line has the all-in cost and no app fee or spread field | ✅ pass | analysis/realised_cost.test.mjs, lib/fee_view.test.mjs |
+| T-A2.7 | A2 7 | unit | Treasury pairs | Counted and named paired confidential flows | ✅ pass | analysis/treasury.test.mjs, lib/fee_view.test.mjs |
+| T-A2.8 | A2 8 | unit | Treasury file and confidential share | Sums by token and direction, fillers apart, no wallet address, unpriced counted, share by hand, a gap stays a gap | ✅ pass | analysis/treasury.test.mjs, pipeline/treasury_day.test.mjs |
+| T-A2.9 | A2 8 | unit | chain_day with a failing treasury file | The chain day still freezes, same bytes | ✅ pass | pipeline/treasury_day.test.mjs |
+| T-T2.6 | PLAN T2 | unit | Day read in 2, 4 and 7 block ranges; a missing part; a capped discovery listing | Same bytes as one read; no freeze from some parts; discovery carries on | ✅ pass | pipeline/chain_day.test.mjs |
+| T-T2.7 | PLAN T2 | Actions | `chain-day` with 4 read jobs on `test`, 5 Nov re-read, `commit=false` | Same transactions and swaps as the frozen file, `verify` passes, 429s recover | ✅ pass | Run 42262780228: digest and swap counts equal, USD −0.03% from revised prices, 1,279 429s, all recovered |
+| T-A2.10 | A2 8 | Actions | `treasury-backfill` from 4 Oct | Files in data/treasury, `verify` passes, frozen chain days unchanged | ⏭ not run | Needs this unit on main |
+| T-A2.11 | Rule 11 | Chrome | 8 pages × 4 states plus `?state=few`, `anchored`, `mismatch`, each in a frame 1440 and 375 wide | No sideways scroll, nothing past the edge, no broken text, no crash | ✅ pass | 7 Nov, 70 loads on the `test` working tree (chain days to 4 Nov, published files to 5 Nov). Console: 8 pages reloaded at the pane width, no errors |
+
 ## Preview states (proposed)
 
 These are not in the SRS. They check the states the screens should show when data is old, loading, failed, anchored or mismatched (SRS 9.4, NFR-6). Expected text comes from the Figma frames and needs the human's confirmation.

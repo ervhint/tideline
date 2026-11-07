@@ -20,7 +20,7 @@ for (const f of dayFiles()) {
 if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
 
 const doc = {
-  source: 'intents.near census of solvers and the transfer hub (FastNEAR, NEAR RPC), priced from DefiLlama',
+  source: 'intents.near census of solvers and the Confidential Intents treasury (FastNEAR, NEAR RPC), priced from DefiLlama',
   query: 'analysis/chain_day.mjs summarizeDays → data/chain/*.jsonl',
   ...summarizeDays(days),
 };
