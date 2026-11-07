@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-07T03:23:19.726Z",
+ "asOf": "2026-11-07T04:23:20.838Z",
  "prereg": "PREREG.md",
  "snapshotLastDay": "2026-11-05",
  "readings": [
@@ -371,19 +371,19 @@
  },
  "vstar": {
   "todayUsd": 4002196892,
-  "priceUsd": 3.75,
+  "priceUsd": 3.74,
   "at16": {
-   "low": 11474067586.241117,
-   "mid": 12851953223.324562,
-   "high": 48707720613.42881
+   "low": 11444348958.707853,
+   "mid": 12818665776.824167,
+   "high": 48581564252.92066
   },
   "at25": {
-   "low": 18086029931.031193,
-   "mid": 20257925876.956425,
-   "high": 76775675780.67311
+   "low": 18038679279.605614,
+   "mid": 20204889030.812584,
+   "high": 76574671012.03583
   },
-  "multiple16": 3.211224627407602,
-  "multiple25": 5.06170146637464
+  "multiple16": 3.202907333831433,
+  "multiple25": 5.0484495331052255
  },
  "notes": {
   "llamaLastDay": "2026-11-06",
@@ -405,7 +405,7 @@
    "As of 7 Nov, the evidence does not reach either line (score +2 of 7; the lines are +3 and -3).",
    "Pointing Bullish: NEAR's share of fees is 34% over the last 30 days and revenue has risen over each of the last three months. Pointing Bearish: solvers keep a lot or a small group of them dominates (spread 59.9 bps, top 3 hold 80%). In between: one integrator brings much of the fees but stays under the 80% line (SwapKit 75% of visible app fees). The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power (0 usable fee changes, 3 needed).",
-   "Monthly volume would need to reach about 3.2x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.1x if issuance stays at 2.5%, with all revenue spent on buybacks."
+   "Monthly volume would need to reach about 3.2x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.0x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]
  }
 }
