@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-06T23:23:26.862Z",
+ "asOf": "2026-11-07T00:23:22.722Z",
  "prereg": "PREREG.md",
  "snapshotLastDay": "2026-11-05",
  "readings": [
@@ -371,19 +371,19 @@
  },
  "vstar": {
   "todayUsd": 4002196892,
-  "priceUsd": 3.7,
+  "priceUsd": 3.71,
   "at16": {
-   "low": 11323251686.17839,
-   "mid": 12683026303.69721,
-   "high": 48067503125.68046
+   "low": 11354836647.557259,
+   "mid": 12718404206.359077,
+   "high": 48201582122.76364
   },
   "at25": {
-   "low": 17846927272.73702,
-   "mid": 19990110112.67993,
-   "high": 75760678667.34898
+   "low": 17896143651.312187,
+   "mid": 20045236735.432964,
+   "high": 75969603497.12065
   },
-  "multiple16": 3.169016079406123,
-  "multiple25": 4.994784277764596
+  "multiple16": 3.1778557001485668,
+  "multiple25": 5.00855836840547
  },
  "notes": {
   "llamaLastDay": "2026-11-05",
@@ -396,13 +396,13 @@
   "namesThatChange": []
  },
  "text": {
-  "asOf": "2026-11-06",
+  "asOf": "2026-11-07",
   "fixed": [
    "Tideline asks whether NEAR Intents fees could ever cover the new NEAR being issued. This is research, not financial advice.",
    "A Bullish reading means the evidence passed a line set in advance, not that the price will rise."
   ],
   "live": [
-   "As of 6 Nov, the evidence does not reach either line (score +2 of 7; the lines are +3 and -3).",
+   "As of 7 Nov, the evidence does not reach either line (score +2 of 7; the lines are +3 and -3).",
    "Pointing Bullish: NEAR's share of fees is 33% over the last 30 days and revenue has risen over each of the last three months. Pointing Bearish: solvers keep a lot or a small group of them dominates (spread 59.9 bps, top 3 hold 80%). In between: one integrator brings much of the fees but stays under the 80% line (SwapKit 75% of visible app fees). The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power (0 usable fee changes, 3 needed).",
    "Monthly volume would need to reach about 3.2x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.0x if issuance stays at 2.5%, with all revenue spent on buybacks."
