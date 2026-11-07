@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-07T08:23:24.933Z",
+ "asOf": "2026-11-07T09:23:23.430Z",
  "prereg": "PREREG.md",
  "snapshotLastDay": "2026-11-06",
  "readings": [
@@ -410,19 +410,19 @@
  },
  "vstar": {
   "todayUsd": 4024044605,
-  "priceUsd": 3.74,
+  "priceUsd": 3.72,
   "at16": {
-   "low": 11447488902.912346,
-   "mid": 12731985114.58878,
-   "high": 48594893399.180664
+   "low": 11381894600.262703,
+   "mid": 12659030627.188087,
+   "high": 48316443848.20167
   },
   "at25": {
-   "low": 18041818705.576187,
-   "mid": 20066249388.638023,
-   "high": 76587997958.37912
+   "low": 17941088385.03012,
+   "mid": 19954216352.165367,
+   "high": 76160395081.40616
   },
-  "multiple16": 3.163977133545909,
-  "multiple25": 4.986587217175746
+  "multiple16": 3.1458474917148904,
+  "multiple25": 4.958746313937882
  },
  "notes": {
   "llamaLastDay": "2026-11-06",
@@ -445,7 +445,7 @@
    "Pointing Bullish: NEAR's share of fees is 34% over the last 30 days and revenue has risen over each of the last three months. In between: one integrator brings much of the fees but stays under the 80% line (SwapKit 75% of visible app fees). The DefiLlama figures come from a dataset nobody can re-run for free.",
    "Not measured yet: Pricing Power (0 usable fee changes, 3 needed). Not measured because flow went private: Solver Competition (treasury 74% of USD). On the public swaps left, as side figures that set no reading: spread 10.5 bps and top 3 solvers hold 59%.",
    "The Confidential Intents treasury, where funds move to a private chain and the swap settles out of public view, carried 74% of the USD counted over the last 7 frozen days and 22% over the last 30.",
-   "Monthly volume would need to reach about 3.2x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.0x if issuance stays at 2.5%, with all revenue spent on buybacks."
+   "Monthly volume would need to reach about 3.1x today's level under the 1.6% issuance plan, which passed its vote but is not in force yet, or 5.0x if issuance stays at 2.5%, with all revenue spent on buybacks."
   ]
  }
 }
